@@ -208,7 +208,7 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 			return "", errors.New("timed-out before download link could be found")
 		}
 
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 5)
 
 		messages, err := GetUploadMessages(sessionToken)
 		if err != nil {
