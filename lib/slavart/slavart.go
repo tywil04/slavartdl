@@ -198,8 +198,6 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 		return "", err
 	}
 
-	fmt.Println(CheckForErrorMessageInRequestMessages(requestMessageId, requestMessages))
-
 	// error found
 	if errMessage, errorFound := CheckForErrorMessageInRequestMessages(requestMessageId, requestMessages); errorFound {
 		return "", errors.New(errMessage)
