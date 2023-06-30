@@ -28,10 +28,24 @@ flags:
 -h, --help: help command
 ```
 
-Modify the config
+Add one or multiple tokens to config
 ```
 slavartdl -> config -> add -> tokens ...tokens [flags]
-slavartdl -> config -> list [flags]
+
+flags:
+-h, --help: help command
+```
+
+List all tokens stored in config
+```
+slavartdl -> config -> list -> tokens [flags]
+
+flags:
+-h, --help: help command
+```
+
+Remove token using index show in `slavartdl list tokens`
+```
 slavartdl -> config -> remove -> tokens ...tokenIndexes [flags]
 
 flags:
