@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -65,8 +66,22 @@ var downloadCmd = &cobra.Command{
 			return err
 		}
 
+		timeoutDurationSeconds, err := strconv.Atoi(flags.Lookup("timeout-duration-seconds").Value.String())
+		if err != nil {
+			return err
+		}
+
+		timeoutDurationMinutes, err := strconv.Atoi(flags.Lookup("timeout-duration-minutes").Value.String())
+		if err != nil {
+			return err
+		}
+
+		timeoutTime := time.Now().
+			Add(time.Minute * time.Duration(timeoutDurationMinutes)).
+			Add(time.Second * time.Duration(timeoutDurationSeconds))
+
 		fmt.Println("Getting download link...")
-		downloadLink, err := slavart.GetDownloadLinkFromSlavart(args[0], quality)
+		downloadLink, err := slavart.GetDownloadLinkFromSlavart(args[0], quality, timeoutTime)
 		if err != nil {
 			return err
 		}
@@ -104,6 +119,9 @@ func init() {
 	downloadCmd.MarkFlagDirname("output-directory")
 
 	flags.IntP("quality", "q", -1, "the quality of music to download, omit (or -1) for best quality available (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)")
+
+	flags.IntP("timeout-duration-seconds", "s", 0, "how long it takes to search for a link before it gives up in seconds (this combines with timeout-duration-minutes)")
+	flags.IntP("timeout-duration-minutes", "m", 2, "how long it takes to search for a link before it gives up in minutes (this combines with timeout-duration-seconds)")
 
 	rootCmd.AddCommand(downloadCmd)
 }

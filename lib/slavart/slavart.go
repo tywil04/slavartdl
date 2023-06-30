@@ -121,7 +121,7 @@ func SearchForDownloadLinkInUploadChannel(link string, messages []RevoltMessage)
 	return "", false
 }
 
-func GetDownloadLinkFromSlavart(link string, quality int) (string, error) {
+func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time) (string, error) {
 	sessionToken, err := GetRandomDivoltSessionToken()
 	if err != nil {
 		return "", err
@@ -154,7 +154,6 @@ func GetDownloadLinkFromSlavart(link string, quality int) (string, error) {
 		return "", err
 	}
 
-	timeoutTime := time.Now().Add(time.Minute * 2)
 	for {
 		if timeoutTime.Before(time.Now()) {
 			return "", errors.New("timed-out before download link could be found")
