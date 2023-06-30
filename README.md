@@ -10,9 +10,9 @@ Download from service with flags
 slavartdl -> download <url> [flags]
 
 flags:
-  [-o, --output-directory]: (required) the directory to save the files to
-  [-q, quality]: the quality of music to download, omit (or -1) for best quality available (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)
-  [-h, --help]: help command
+[-o, --output-directory]: (required) the directory to save the files to
+[-q, quality]: the quality of music to download, omit (or -1) for best quality available (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)
+[-h, --help]: help command
 ```
 
 Display the location of the config file
@@ -20,7 +20,7 @@ Display the location of the config file
 slavartdl -> config [flags]
 
 flags:
-  [-h, --help]: help command
+[-h, --help]: help command
 ```
 
 Modify the config
@@ -30,5 +30,5 @@ slavartdl -> config -> list [flags]
 slavartdl -> config -> remove -> tokens ...tokenIndexes [flags]
 
 flags:
-  [-h, --help]: help command
+[-h, --help]: help command
 ```
