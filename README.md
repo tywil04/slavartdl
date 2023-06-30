@@ -1,6 +1,8 @@
 # Slavart Downloader
 This is a simple tool written in Go(lang) to download music using the SlavArt Divolt server. This tool was inspired by [https://github.com/D0otDo0t/slavolt-scraper](https://github.com/D0otDo0t/slavolt-scraper), however I choose to write my own tool because I noticed there were inefficiencies in how the download link was collected.
 
+I created this tool for educational purposes and I do not condone any form of piracy.
+
 ## Config
 Session tokens are stored in a local config file (use `slavartdl config` to find the location). You do not need to manually edit the config, you can use the commands show below. The session tokens are stored in plaintext due to the simplicity of this program, this means anyone who has access to your file system can use your revolt account(s). Dont use your main account for this, I am not liable for your account getting hacked or stolen.
 
