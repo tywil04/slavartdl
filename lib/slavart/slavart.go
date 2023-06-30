@@ -108,7 +108,7 @@ func GetUploadMessages(sessionToken string) ([]RevoltMessage, error) {
 }
 
 // see if we can find an upload message for the link we want (even if its for another user)
-func SearchForDownloadLinkInUploadChannel(link string, messages []RevoltMessage) (string, bool) {
+func SearchForDownloadLinkInUploadMessages(link string, messages []RevoltMessage) (string, bool) {
 	for _, revoltMessage := range messages {
 		regex := regexp.MustCompile(`(?m)Your requested link\, (.*)\, is now available for download:\n \*\*Download Link\*\*\n (.*)`)
 		matches := regex.FindAllStringSubmatch(revoltMessage.Embeds[0].Description, -1)[0]
@@ -137,7 +137,7 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 		return "", err
 	}
 
-	if downloadLink, ok := SearchForDownloadLinkInUploadChannel(realLink, messages); ok {
+	if downloadLink, ok := SearchForDownloadLinkInUploadMessages(realLink, messages); ok {
 		return downloadLink, nil
 	}
 
@@ -166,7 +166,7 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 			return "", err
 		}
 
-		if downloadLink, ok := SearchForDownloadLinkInUploadChannel(realLink, messages); ok {
+		if downloadLink, ok := SearchForDownloadLinkInUploadMessages(realLink, messages); ok {
 			return downloadLink, nil
 		}
 	}
