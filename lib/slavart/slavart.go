@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"slavartdl/lib/config"
@@ -29,6 +30,8 @@ type RevoltMessage struct {
 	Embeds   []struct {
 		Description string `json:"description"`
 	} `json:"embeds"`
+	Content string   `json:"content"`
+	Replies []string `json:"replies"`
 }
 
 // check if bot is down
@@ -107,10 +110,43 @@ func GetUploadMessages(sessionToken string) ([]RevoltMessage, error) {
 	return downloadRequestFinishedTestResponse, err
 }
 
+// get last 100 messages in request channel
+func GetRequestMessages(sessionToken string) ([]RevoltMessage, error) {
+	downloadRequestFinishedTestResponse := []RevoltMessage{}
+
+	err := helpers.JsonApiRequest(
+		http.MethodGet,
+		Api+"/channels/"+RequestChannel+"/messages",
+		&downloadRequestFinishedTestResponse,
+		map[string]string{
+			"sort":          "Latest",
+			"include_users": "false",
+		},
+		map[string]string{
+			"X-Session-Token": sessionToken,
+		},
+	)
+
+	return downloadRequestFinishedTestResponse, err
+}
+
+func CheckForErrorMessageInRequestMessages(requestMessageId string, messages []RevoltMessage) (string, bool) {
+	for _, revoltMessage := range messages {
+		for _, reply := range revoltMessage.Replies {
+			if reply == requestMessageId && strings.Contains(revoltMessage.Content, "Error:") {
+				return revoltMessage.Content, true
+			}
+		}
+	}
+
+	return "", false
+}
+
 // see if we can find an upload message for the link we want (even if its for another user)
 func SearchForDownloadLinkInUploadMessages(link string, messages []RevoltMessage) (string, bool) {
+	regex := regexp.MustCompile(`(?m)Your requested link\, (.*)\, is now available for download:\n \*\*Download Link\*\*\n (.*)`)
+
 	for _, revoltMessage := range messages {
-		regex := regexp.MustCompile(`(?m)Your requested link\, (.*)\, is now available for download:\n \*\*Download Link\*\*\n (.*)`)
 		matches := regex.FindAllStringSubmatch(revoltMessage.Embeds[0].Description, -1)[0]
 
 		if matches[1] == link {
@@ -150,8 +186,23 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 		return "", errors.New("bot isn't online")
 	}
 
-	if _, err := SendDownloadMessage(sessionToken, realLink); err != nil {
+	requestMessageId, err := SendDownloadMessage(sessionToken, realLink)
+	if err != nil {
 		return "", err
+	}
+
+	time.Sleep(time.Second * 5) // give time for the message to send
+
+	requestMessages, err := GetRequestMessages(sessionToken)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println(CheckForErrorMessageInRequestMessages(requestMessageId, requestMessages))
+
+	// error found
+	if errMessage, errorFound := CheckForErrorMessageInRequestMessages(requestMessageId, requestMessages); errorFound {
+		return "", errors.New(errMessage)
 	}
 
 	for {
