@@ -18,7 +18,7 @@ import (
 var downloadCmd = &cobra.Command{
 	Use:       "download url [flags]",
 	Short:     "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
-	Long:      "download music from url using slavart (supports: x, y, z)",
+	Long:      "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
 	Args:      cobra.ExactArgs(1),
 	ValidArgs: []string{"url"},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
