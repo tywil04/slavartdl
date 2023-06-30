@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"slavartdl/lib/config"
 
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,8 @@ var configCmd = &cobra.Command{
 	Args:      cobra.ExactArgs(0),
 	ValidArgs: []string{"url"},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		config.CreateConfigIfNotExist()
+
 		userConfigDirectory, err := os.UserConfigDir()
 		if err != nil {
 			return err
