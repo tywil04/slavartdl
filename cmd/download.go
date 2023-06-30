@@ -118,7 +118,7 @@ func init() {
 	downloadCmd.MarkFlagRequired("output-directory")
 	downloadCmd.MarkFlagDirname("output-directory")
 
-	flags.IntP("quality", "q", -1, "the quality of music to download, omit (or -1) for best quality available (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)")
+	flags.IntP("quality", "q", 0, "the quality of music to download, omit (or 0) for best quality available (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)")
 
 	flags.IntP("timeout-duration-seconds", "s", 0, "how long it takes to search for a link before it gives up in seconds (this combines with timeout-duration-minutes)")
 	flags.IntP("timeout-duration-minutes", "m", 2, "how long it takes to search for a link before it gives up in minutes (this combines with timeout-duration-seconds)")

@@ -128,7 +128,7 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 	}
 
 	realLink := link
-	if quality != -1 {
+	if quality != 0 {
 		realLink = fmt.Sprintf("%s %d", link, quality-1)
 	}
 
