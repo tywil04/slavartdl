@@ -17,6 +17,8 @@ const (
 
 	RequestChannel = "01G9AZ9AMWDV227YA7FQ5RV8WB"
 	UploadChannel  = "01G9AZ9Q2R5VEGVPQ4H99C01YP"
+
+	SlavartBotId = "01G9824MQPGD7GVYR0F6A6GJ2Q"
 )
 
 // interact with the slavart divolt server (its a self-hosted instance of revolt) and use its api
@@ -27,6 +29,25 @@ type RevoltMessage struct {
 	Embeds   []struct {
 		Description string `json:"description"`
 	} `json:"embeds"`
+}
+
+// check if bot is down
+func GetSlavartBotOnlineStatus(sessionToken string) (bool, error) {
+	serverMemberResponse := struct {
+		Online bool `json:"online"`
+	}{}
+
+	err := helpers.JsonApiRequest(
+		http.MethodGet,
+		Api+"/users/"+SlavartBotId,
+		&serverMemberResponse,
+		map[string]string{},
+		map[string]string{
+			"X-Session-Token": sessionToken,
+		},
+	)
+
+	return serverMemberResponse.Online, err
 }
 
 // this is because we dont want to spam the bot service with a single account, so we use multiple
@@ -120,11 +141,27 @@ func GetDownloadLinkFromSlavart(link string, quality int) (string, error) {
 		return downloadLink, nil
 	}
 
+	online, err := GetSlavartBotOnlineStatus(sessionToken)
+	if err != nil {
+		return "", err
+	}
+
+	if !online {
+		return "", errors.New("bot isn't online")
+	}
+
 	if _, err := SendDownloadMessage(sessionToken, realLink); err != nil {
 		return "", err
 	}
 
+	timeoutTime := time.Now().Add(time.Minute * 2)
 	for {
+		if timeoutTime.Before(time.Now()) {
+			return "", errors.New("timed-out before download link could be found")
+		}
+
+		time.Sleep(time.Second * 10)
+
 		messages, err := GetUploadMessages(sessionToken)
 		if err != nil {
 			return "", err
@@ -133,7 +170,5 @@ func GetDownloadLinkFromSlavart(link string, quality int) (string, error) {
 		if downloadLink, ok := SearchForDownloadLinkInUploadChannel(realLink, messages); ok {
 			return downloadLink, nil
 		}
-
-		time.Sleep(time.Second * 10)
 	}
 }
