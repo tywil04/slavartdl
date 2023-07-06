@@ -1,6 +1,11 @@
+name: 'publish'
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 permissions:
     contents: write
@@ -25,3 +30,5 @@ jobs:
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         binary_name: "slavartdl"
+        release_tag: "slavartdl"
+        retry: 5
