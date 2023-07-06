@@ -6,7 +6,7 @@ I created this tool for educational purposes and I do not condone any form of pi
 You can find pre-build versions in the releases section.
 
 ## Usage
-Just run the executable for your system. Right now only Linux and Windows (x86_64) have pre-build executables although in theory its possible to build this code for any platform that is supported by Go(lang).
+Just run the executable for your system. There are prebuild executables for Windows, Linux and MacOS (darwin). Linux and MacOS have arm compatible versions.
 
 On Windows don't double click the executable, it will open a command prompt and close instead open a command prompt and navigate to the directory containing the `slavartdl.exe`. You then need to run this executable in the command prompt to successfully run the command.
 
