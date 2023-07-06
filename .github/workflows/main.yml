@@ -1,5 +1,6 @@
 on:
-  release: [created]
+  release:
+    types: [created]
 
 permissions:
     contents: write
