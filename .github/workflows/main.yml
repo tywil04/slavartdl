@@ -28,3 +28,4 @@ jobs:
         goarch: ${{ matrix.goarch }}
         binary_name: "slavartdl"
         retry: 5
+        extra_files: LICENCE README.md
