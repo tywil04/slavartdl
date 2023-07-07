@@ -19,21 +19,32 @@ You can have multiple session tokens that will randomly get used per request.
 I recommend following the guide from [D0otDo0t](https://github.com/D0otDo0t/slavolt-scraper).
 
 ## Commands
+- `<value>`: 1 argument needed for value
+- `...<value>`: as many arguments needed for value (0 to inf)
+- `[value]`: optional value
+
 Download from services with flags
 ```
-slavartdl -> download <url> [flags]
+slavartdl download <url> [flags]
 
 flags:
--o, --output-directory: (required) the directory to save the files to
--q, --quality: the quality of music to download, omit (or -1) for best quality available (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)
--s, --timeout-duration-seconds: how long it takes to search for a link before it gives up in seconds (this combines with timeout-duration-minutes)
--m, --timeout-duration-minutes: how long it takes to search for a link before it gives up in minutes (this combines with timeout-duration-seconds)
--h, --help: help command
+-o, --output-directory:         (required) the directory to save the files to
+
+-q, --quality:                  the quality of music to download, omit (or -1) for best quality available
+                                (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)
+
+-s, --timeout-duration-seconds: how long it takes to search for a link before it gives up in seconds
+                                (this combines with --timeout-duration-minutes)
+
+-m, --timeout-duration-minutes: how long it takes to search for a link before it gives up in minutes
+                                (this combines with --timeout-duration-seconds)
+
+-h, --help:                     help command
 ```
 
 Display the location of the config file
 ```
-slavartdl -> config [flags]
+slavartdl config [flags]
 
 flags:
 -h, --help: help command
@@ -41,15 +52,15 @@ flags:
 
 Add one or multiple tokens to config
 ```
-slavartdl -> config -> add -> tokens ...tokens [flags]
+slavartdl config add tokens ...<tokens> [flags]
 
 flags:
 -h, --help: help command
 ```
 
-List all tokens stored in config
+List all tokens stored in config with there `tokenindex`
 ```
-slavartdl -> config -> list -> tokens [flags]
+slavartdl config list tokens [flags]
 
 flags:
 -h, --help: help command
@@ -57,7 +68,7 @@ flags:
 
 Remove token using index show in `slavartdl list tokens`
 ```
-slavartdl -> config -> remove -> tokens ...tokenIndexes [flags]
+slavartdl config remove tokens ...<tokenindexes> [flags]
 
 flags:
 -h, --help: help command
