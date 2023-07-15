@@ -39,6 +39,10 @@ flags:
 -m, --timeout-duration-minutes: how long it takes to search for a link before it gives up in minutes
                                 (this combines with --timeout-duration-seconds)
 
+-c, --ignore-cover:             whether to ignore cover.jpg when unzipping downloaded music
+
+-d, --ignore-subdirectories:    whether to ignore subdirectories when unzipping downloaded music
+
 -h, --help:                     help command
 ```
 

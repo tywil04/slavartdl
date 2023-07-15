@@ -40,7 +40,7 @@ func JsonApiRequest(method, url string, responseWriter any, data, headers map[st
 
 	// if the response is not a successful http status
 	if !(response.StatusCode >= 200 && response.StatusCode <= 299) {
-		return errors.New(fmt.Sprintf("unsuccessful request got http status code: %d", response.StatusCode))
+		return fmt.Errorf("unsuccessful request got http status code: %d", response.StatusCode)
 	}
 
 	if err := json.NewDecoder(response.Body).Decode(&responseWriter); err != nil {
@@ -55,6 +55,7 @@ func DownloadFile(url string, outputFilePath string) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	file, err := os.Create(outputFilePath)
 	if err != nil {
@@ -71,43 +72,54 @@ func DownloadFile(url string, outputFilePath string) error {
 	return nil
 }
 
-func unzipFile(file *zip.File, outputFolderPath string) error {
+func unzipFile(file *zip.File, outputFolderPath string, ignoreSubdirectories, ignoreCover bool) error {
 	filePath := filepath.Join(outputFolderPath, file.Name)
 	if !strings.HasPrefix(filePath, filepath.Clean(outputFolderPath)+string(os.PathSeparator)) {
 		return errors.New("invalid file path")
 	}
 
-	if file.FileInfo().IsDir() {
-		if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
-			return err
+	fileNameOnly := filepath.Base(filePath)
+
+	if !ignoreSubdirectories {
+		if file.FileInfo().IsDir() {
+			if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
+				return err
+			}
+
+			return nil
+		}
+	} else {
+		if file.FileInfo().IsDir() {
+			return nil
 		}
 
-		return nil
+		filePath = filepath.Join(outputFolderPath, fileNameOnly)
 	}
 
-	destinationFile, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer destinationFile.Close()
+	if !(fileNameOnly == "cover.jpg" && ignoreCover) {
+		destinationFile, err := os.Create(filePath)
+		if err != nil {
+			return err
+		}
+		defer destinationFile.Close()
 
-	zippedFile, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer zippedFile.Close()
+		zippedFile, err := file.Open()
+		if err != nil {
+			return err
+		}
+		defer zippedFile.Close()
 
-	fmt.Println()
-	fmt.Println(file.Name)
-	bar := progressbar.DefaultBytes(file.FileInfo().Size())
-	if _, err := io.Copy(io.MultiWriter(destinationFile, bar), zippedFile); err != nil {
-		return err
+		fmt.Println("\n" + fileNameOnly)
+		bar := progressbar.DefaultBytes(file.FileInfo().Size())
+		if _, err := io.Copy(io.MultiWriter(destinationFile, bar), zippedFile); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func Unzip(inputFilePath, outputFolderPath string) error {
+func Unzip(inputFilePath, outputFolderPath string, ignoreSubdirectories, ignoreCover bool) error {
 	reader, err := zip.OpenReader(inputFilePath)
 	if err != nil {
 		return err
@@ -115,7 +127,7 @@ func Unzip(inputFilePath, outputFolderPath string) error {
 	defer reader.Close()
 
 	for _, file := range reader.File {
-		err := unzipFile(file, outputFolderPath)
+		err := unzipFile(file, outputFolderPath, ignoreSubdirectories, ignoreCover)
 		if err != nil {
 			return err
 		}

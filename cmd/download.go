@@ -35,6 +35,7 @@ var downloadCmd = &cobra.Command{
 			"open.spotify.com",
 			"music.youtube.com",
 			"www.jiosaavn.com",
+			"play.qobuz.com",
 		}
 
 		allowed := false
@@ -76,6 +77,16 @@ var downloadCmd = &cobra.Command{
 			return err
 		}
 
+		ignoreCover, err := strconv.ParseBool(flags.Lookup("ignore-cover").Value.String())
+		if err != nil {
+			return err
+		}
+
+		ignoreSubdirectories, err := strconv.ParseBool(flags.Lookup("ignore-subdirectories").Value.String())
+		if err != nil {
+			return err
+		}
+
 		timeoutTime := time.Now().
 			Add(time.Minute * time.Duration(timeoutDurationMinutes)).
 			Add(time.Second * time.Duration(timeoutDurationSeconds))
@@ -101,7 +112,7 @@ var downloadCmd = &cobra.Command{
 		}
 
 		fmt.Println("\nUnzipping...")
-		err = helpers.Unzip(tempFilePath, outputDirectory)
+		err = helpers.Unzip(tempFilePath, outputDirectory, ignoreSubdirectories, ignoreCover)
 		if err != nil {
 			return err
 		}
@@ -123,6 +134,9 @@ func init() {
 
 	flags.IntP("timeout-duration-seconds", "s", 0, "how long it takes to search for a link before it gives up in seconds (this combines with timeout-duration-minutes)")
 	flags.IntP("timeout-duration-minutes", "m", 2, "how long it takes to search for a link before it gives up in minutes (this combines with timeout-duration-seconds)")
+
+	flags.BoolP("ignore-cover", "c", false, "ignore cover.jpg when unzipping downloaded music")
+	flags.BoolP("ignore-subdirectories", "d", false, "ignore subdirectories when unzipping downloaded music")
 
 	rootCmd.AddCommand(downloadCmd)
 }
