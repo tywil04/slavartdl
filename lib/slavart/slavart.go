@@ -110,7 +110,7 @@ func GetUploadMessages(sessionToken string) ([]RevoltMessage, error) {
 	return downloadRequestFinishedTestResponse, err
 }
 
-// get last 100 messages in request channel
+// get last 250 messages in request channel
 func GetRequestMessages(sessionToken string) ([]RevoltMessage, error) {
 	downloadRequestFinishedTestResponse := []RevoltMessage{}
 
@@ -121,6 +121,7 @@ func GetRequestMessages(sessionToken string) ([]RevoltMessage, error) {
 		map[string]string{
 			"sort":          "Latest",
 			"include_users": "false",
+			"limit":         "250",
 		},
 		map[string]string{
 			"X-Session-Token": sessionToken,
@@ -133,7 +134,7 @@ func GetRequestMessages(sessionToken string) ([]RevoltMessage, error) {
 func CheckForErrorMessageInRequestMessages(requestMessageId string, messages []RevoltMessage) (string, bool) {
 	for _, revoltMessage := range messages {
 		for _, reply := range revoltMessage.Replies {
-			if reply == requestMessageId && strings.Contains(revoltMessage.Content, "Error:") {
+			if reply == requestMessageId && strings.Contains(strings.ToLower(revoltMessage.Content), "error") {
 				return revoltMessage.Content, true
 			}
 		}
