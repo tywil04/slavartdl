@@ -27,19 +27,8 @@ var downloadCmd = &cobra.Command{
 			return err
 		}
 
-		allowedHosts := []string{
-			"tidal.com",
-			"www.qobuz.com",
-			"soundcloud.com",
-			"www.deezer.com",
-			"open.spotify.com",
-			"music.youtube.com",
-			"www.jiosaavn.com",
-			"play.qobuz.com",
-		}
-
 		allowed := false
-		for _, host := range allowedHosts {
+		for _, host := range slavart.AllowedHosts {
 			if host == parsedUrl.Host {
 				allowed = true
 				break

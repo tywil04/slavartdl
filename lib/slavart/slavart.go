@@ -22,6 +22,18 @@ const (
 	SlavartBotId = "01G9824MQPGD7GVYR0F6A6GJ2Q"
 )
 
+var AllowedHosts = []string{
+	"tidal.com",
+	"www.qobuz.com",
+	"play.qobuz.com",
+	"open.qobuz.com",
+	"soundcloud.com",
+	"www.deezer.com",
+	"open.spotify.com",
+	"music.youtube.com",
+	"www.jiosaavn.com",
+}
+
 // interact with the slavart divolt server (its a self-hosted instance of revolt) and use its api
 
 // this only has what I need
