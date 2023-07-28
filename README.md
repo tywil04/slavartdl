@@ -22,7 +22,7 @@ Follows these steps to get a session token:
 - Log in to Divolt.
 - Open browser DevTools.
 - Navigate to the network tab and then select the 'XHR' filter.
-- Find a request with the domain of 'api.divolt.xyz'.
+- Find and select a request with the domain of 'api.divolt.xyz'.
 - Select the header tab and copy the value of the x-session-token. If there is no x-session-token select another request.
 
 ## Commands
