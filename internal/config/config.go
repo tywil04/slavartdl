@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -35,8 +34,6 @@ func CreateConfigIfNotExist() error {
 
 	_, err = os.Stat(configFilePath)
 	if os.IsNotExist(err) {
-		fmt.Println(err)
-
 		configFile, err := os.Create(configFilePath)
 		if err != nil {
 			return err
@@ -90,4 +87,12 @@ func WriteConfig() error {
 	defer configFile.Close()
 
 	return json.NewEncoder(configFile).Encode(Public)
+}
+
+func GetConfigPath() (string, error) {
+	userConfigDirectory, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return userConfigDirectory + ConfigDirectory + ConfigFilePath, nil
 }

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"slavartdl/lib/config"
-	"slavartdl/lib/helpers"
+	"github.com/tywil04/slavartdl/internal/config"
+	"github.com/tywil04/slavartdl/internal/helpers"
 )
 
 const (

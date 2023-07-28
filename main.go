@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"slavartdl/cmd"
-	"slavartdl/lib/config"
+	"github.com/tywil04/slavartdl/cmd"
+	"github.com/tywil04/slavartdl/internal/config"
 )
 
 func main() {
