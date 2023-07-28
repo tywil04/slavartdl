@@ -3,9 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"slavartdl/lib/config"
 
 	"github.com/spf13/cobra"
+
+	"slavartdl/lib/config"
 )
 
 var configCmd = &cobra.Command{
@@ -16,12 +17,12 @@ var configCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config.CreateConfigIfNotExist()
 
-		userConfigDirectory, err := os.UserConfigDir()
+		userConfigDirectory, err := config.GetConfigPath()
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("The config file is located at:\n%s/slavart/config.yaml\n", userConfigDirectory)
+		fmt.Printf("The config file is located at: %s\n", userConfigDirectory)
 
 		return nil
 	},
