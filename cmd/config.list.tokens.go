@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tywil04/slavart/internal/config"
+	"github.com/tywil04/slavartdl/internal/config"
 )
 
 var configListTokensCmd = &cobra.Command{

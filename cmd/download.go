@@ -11,8 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tywil04/slavart/internal/helpers"
-	"github.com/tywil04/slavart/internal/slavart"
+	"github.com/tywil04/slavartdl/internal/helpers"
+	"github.com/tywil04/slavartdl/internal/slavart"
 )
 
 var downloadCmd = &cobra.Command{
