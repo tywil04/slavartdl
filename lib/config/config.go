@@ -35,8 +35,6 @@ func CreateConfigIfNotExist() error {
 
 	_, err = os.Stat(configFilePath)
 	if os.IsNotExist(err) {
-		fmt.Println(err)
-
 		configFile, err := os.Create(configFilePath)
 		if err != nil {
 			return err
