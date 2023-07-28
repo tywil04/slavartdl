@@ -91,3 +91,11 @@ func WriteConfig() error {
 
 	return json.NewEncoder(configFile).Encode(Public)
 }
+
+func GetConfigPath() (string, error) {
+	userConfigDirectory, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return userConfigDirectory + ConfigDirectory + ConfigFilePath, nil
+}
