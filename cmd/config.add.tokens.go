@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"slavartdl/lib/config"
-
 	"github.com/spf13/cobra"
+
+	"github.com/tywil04/slavart/lib/config"
 )
 
 var configAddTokensCmd = &cobra.Command{

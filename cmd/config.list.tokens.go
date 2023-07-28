@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"slavartdl/lib/config"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tywil04/slavart/lib/config"
 )
 
 var configListTokensCmd = &cobra.Command{

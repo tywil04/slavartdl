@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"slavartdl/lib/config"
 	"strconv"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tywil04/slavart/lib/config"
 )
 
 var configRemoveTokensCmd = &cobra.Command{

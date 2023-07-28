@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
-	"slavartdl/lib/config"
+	"github.com/tywil04/slavart/lib/config"
 )
 
 var configCmd = &cobra.Command{
