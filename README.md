@@ -16,7 +16,14 @@ Session tokens are stored in a local config file (use `slavartdl config` to find
 You can have multiple session tokens that will randomly get used per request.
 
 ### Getting session tokens to add to config
-I recommend following the guide from [D0otDo0t](https://github.com/D0otDo0t/slavolt-scraper).
+Getting a session token is easy. Just note that once you get your session token, for it to remain active you must close the divolt tab and do not logout.
+
+Follows these steps to get a session token:
+- Log in to Divolt.
+- Open browser DevTools.
+- Navigate to the network tab and then select the 'XHR' filter.
+- Find a request with the domain of 'api.divolt.xyz'.
+- Select the header tab and copy the value of the x-session-token. If there is no x-session-token select another request.
 
 ## Commands
 - `<value>`: 1 argument needed for value
