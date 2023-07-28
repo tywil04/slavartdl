@@ -10,6 +10,13 @@ Just run the executable for your system. There are prebuild executables for Wind
 
 On Windows don't double click the executable, it will open a command prompt and close instead open a command prompt and navigate to the directory containing the `slavartdl.exe`. You then need to run this executable in the command prompt to successfully run the command.
 
+### If you have Go installed
+If you have Go installed then you can run:
+```
+go install github.com/tywil04/slavartdl@latest
+```
+which will install `slavartdl` in your go bin path.
+
 ## Config
 Session tokens are stored in a local config file (use `slavartdl config` to find the location). You do not need to manually edit the config, you can use the commands show below. The session tokens are stored in plaintext due to the simplicity of this program, this means anyone who has access to your file system can use your revolt account(s). Dont use your main account for this, I am not liable for your account getting hacked or stolen.
 
@@ -32,7 +39,7 @@ Follows these steps to get a session token:
 
 Download from services with flags
 ```
-slavartdl download <url> [flags]
+slavartdl download [flags] <url>
 
 flags:
 -o, --output-directory:         (required) the directory to save the files to
@@ -55,7 +62,7 @@ flags:
 
 Display the location of the config file
 ```
-slavartdl config [flags]
+slavartdl config [flags] 
 
 flags:
 -h, --help: help command
@@ -63,7 +70,7 @@ flags:
 
 Add one or multiple tokens to config
 ```
-slavartdl config add tokens ...<tokens> [flags]
+slavartdl config add tokens [flags] ...<token> 
 
 flags:
 -h, --help: help command
@@ -79,7 +86,7 @@ flags:
 
 Remove token using index show in `slavartdl list tokens`
 ```
-slavartdl config remove tokens ...<tokenindexes> [flags]
+slavartdl config remove tokens [flags] ...<tokenIndex>
 
 flags:
 -h, --help: help command

@@ -16,27 +16,28 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:       "download url [flags]",
-	Short:     "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
-	Long:      "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
-	Args:      cobra.ExactArgs(1),
-	ValidArgs: []string{"url"},
+	Use:   "download [flags] ...url",
+	Short: "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
+	Long:  "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
+	Args:  cobra.MinimumNArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		parsedUrl, err := url.ParseRequestURI(args[0])
-		if err != nil {
-			return err
-		}
-
-		allowed := false
-		for _, host := range slavart.AllowedHosts {
-			if host == parsedUrl.Host {
-				allowed = true
-				break
+		for _, arg := range args {
+			parsedUrl, err := url.ParseRequestURI(arg)
+			if err != nil {
+				return err
 			}
-		}
 
-		if !allowed {
-			return errors.New("host not allowed")
+			allowed := false
+			for _, host := range slavart.AllowedHosts {
+				if host == parsedUrl.Host {
+					allowed = true
+					break
+				}
+			}
+
+			if !allowed {
+				return errors.New("host not allowed")
+			}
 		}
 
 		return nil
@@ -56,21 +57,25 @@ var downloadCmd = &cobra.Command{
 			return err
 		}
 
+		// optional
 		timeoutDurationSeconds, err := strconv.Atoi(flags.Lookup("timeout-duration-seconds").Value.String())
 		if err != nil {
 			return err
 		}
 
+		// optional
 		timeoutDurationMinutes, err := strconv.Atoi(flags.Lookup("timeout-duration-minutes").Value.String())
 		if err != nil {
 			return err
 		}
 
+		// optional
 		ignoreCover, err := strconv.ParseBool(flags.Lookup("ignore-cover").Value.String())
 		if err != nil {
 			return err
 		}
 
+		// optional
 		ignoreSubdirectories, err := strconv.ParseBool(flags.Lookup("ignore-subdirectories").Value.String())
 		if err != nil {
 			return err
@@ -80,33 +85,35 @@ var downloadCmd = &cobra.Command{
 			Add(time.Minute * time.Duration(timeoutDurationMinutes)).
 			Add(time.Second * time.Duration(timeoutDurationSeconds))
 
-		fmt.Println("Getting download link...")
-		downloadLink, err := slavart.GetDownloadLinkFromSlavart(args[0], quality, timeoutTime)
-		if err != nil {
-			return err
-		}
+		for _, arg := range args {
+			fmt.Println("Getting download link...")
+			downloadLink, err := slavart.GetDownloadLinkFromSlavart(arg, quality, timeoutTime)
+			if err != nil {
+				return err
+			}
 
-		fmt.Println("\nDownloading zip...")
-		// this will create a temp file in the default location
-		tempFile, err := os.CreateTemp("", "slavartdownloader.*.zip")
-		if err != nil {
-			return err
-		}
-		defer os.Remove(tempFile.Name())
+			fmt.Println("\nDownloading zip...")
+			// this will create a temp file in the default location
+			tempFile, err := os.CreateTemp("", "slavartdownloader.*.zip")
+			if err != nil {
+				return err
+			}
+			defer os.Remove(tempFile.Name())
 
-		tempFilePath := tempFile.Name()
-		err = helpers.DownloadFile(downloadLink, tempFilePath)
-		if err != nil {
-			return err
-		}
+			tempFilePath := tempFile.Name()
+			err = helpers.DownloadFile(downloadLink, tempFilePath)
+			if err != nil {
+				return err
+			}
 
-		fmt.Println("\nUnzipping...")
-		err = helpers.Unzip(tempFilePath, outputDirectory, ignoreSubdirectories, ignoreCover)
-		if err != nil {
-			return err
-		}
+			fmt.Println("\nUnzipping...")
+			err = helpers.Unzip(tempFilePath, outputDirectory, ignoreSubdirectories, ignoreCover)
+			if err != nil {
+				return err
+			}
 
-		fmt.Println("\nDone!")
+			fmt.Println("\nDone!")
+		}
 
 		return nil
 	},

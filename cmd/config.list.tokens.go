@@ -9,7 +9,7 @@ import (
 )
 
 var configListTokensCmd = &cobra.Command{
-	Use:   "tokens",
+	Use:   "tokens [flags]",
 	Short: "lists stored tokens",
 	Long:  "lists stored tokens",
 	Args:  cobra.ExactArgs(0),

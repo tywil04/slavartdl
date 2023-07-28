@@ -7,7 +7,7 @@ import (
 )
 
 var configAddTokensCmd = &cobra.Command{
-	Use:   "tokens ...tokens",
+	Use:   "tokens [flags] ...token",
 	Short: "adds token to config",
 	Long:  "adds token to config",
 	RunE: func(cmd *cobra.Command, args []string) error {

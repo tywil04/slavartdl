@@ -9,7 +9,7 @@ import (
 )
 
 var configCmd = &cobra.Command{
-	Use:   "config",
+	Use:   "config [flags]",
 	Short: "get the config file location",
 	Long:  "get the config file location",
 	Args:  cobra.ExactArgs(0),

@@ -9,7 +9,7 @@ import (
 )
 
 var configRemoveTokensCmd = &cobra.Command{
-	Use:   "tokens ...tokenIndexes",
+	Use:   "tokens [flags] ...tokenIndex",
 	Short: "removes token using index shown when list command is used",
 	Long:  "removes token using index shown when list command is used",
 	RunE: func(cmd *cobra.Command, args []string) error {
