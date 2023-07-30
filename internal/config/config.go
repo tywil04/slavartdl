@@ -64,6 +64,9 @@ func Load(defaultHandling bool, customPath string) error {
 			"cover": false,
 			"subdirs": false
 		},
+		"skip": {
+			"unzip": false
+		}
 	}
 }`))
 

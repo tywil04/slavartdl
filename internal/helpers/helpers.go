@@ -135,3 +135,32 @@ func Unzip(inputFilePath, outputFolderPath string, ignoreSubdirectories, ignoreC
 
 	return nil
 }
+
+func GetZipName(inputFilePath string) (string, error) {
+	zip, err := zip.OpenReader(inputFilePath)
+	if err != nil {
+		return "", err
+	}
+	defer zip.Close()
+	return zip.File[0].Name, nil
+}
+
+func CopyFile(sourcePath, destinationPath string) error {
+	source, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(destinationPath)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+
+	if _, err := io.Copy(destination, source); err != nil {
+		return err
+	}
+
+	return nil
+}
