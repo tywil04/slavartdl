@@ -36,21 +36,29 @@ var configRemoveTokensCmd = &cobra.Command{
 
 		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
 
+		fmt.Println(sessionTokens)
+
 		for index := range sessionTokens {
 			for _, arg := range args {
 				argNumber, err := strconv.Atoi(arg)
 				if err == nil && argNumber == index {
-					sessionTokens = append(
-						sessionTokens[:index],
-						sessionTokens[index+1:]...,
-					)
+					sessionTokens[index] = "<DELETED>"
 				}
 			}
 		}
 
-		viper.Set("divoltsessiontokens", sessionTokens)
+		resultingSessionTokens := []string{}
+		for _, token := range sessionTokens {
+			if token != "<DELETED>" {
+				resultingSessionTokens = append(resultingSessionTokens, token)
+			}
+		}
 
-		return nil
+		fmt.Println(resultingSessionTokens)
+
+		viper.Set("divoltsessiontokens", resultingSessionTokens)
+
+		return config.Offload()
 	},
 }
 

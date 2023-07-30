@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -34,10 +35,17 @@ var configAddTokensCmd = &cobra.Command{
 		}
 
 		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-		sessionTokens = append(sessionTokens, args...)
+
+		for _, arg := range args {
+			arg = strings.TrimSpace(arg)
+			if arg != "" && arg != "<DELETED>" {
+				sessionTokens = append(sessionTokens, arg)
+			}
+		}
+
 		viper.Set("divoltsessiontokens", sessionTokens)
 
-		return nil
+		return config.Offload()
 	},
 }
 
