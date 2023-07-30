@@ -39,7 +39,7 @@ Follows these steps to get a session token:
 
 Download from services with flags
 ```
-slavartdl download [flags] <url>
+slavartdl download [flags] ...<url>
 
 flags:
 -o, --output-directory:         (required) the directory to save the files to
