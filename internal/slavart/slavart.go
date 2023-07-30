@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tywil04/slavartdl/internal/config"
+	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/internal/helpers"
 )
 
@@ -69,10 +69,10 @@ func GetSlavartBotOnlineStatus(sessionToken string) (bool, error) {
 func GetRandomDivoltSessionToken() (string, error) {
 	rand.Seed(time.Now().UnixNano())
 
-	sessionTokens := config.Public.DivoltSessionTokens
+	sessionTokens := viper.GetStringSlice("divoltsessiontokens")
 	length := len(sessionTokens)
 	if length == 0 {
-		return "", errors.New("no session tokens found")
+		return "", errors.New("no session tokens found in config")
 	} else if length == 1 {
 		return sessionTokens[0], nil
 	}
