@@ -5,7 +5,8 @@ import (
 )
 
 var configAddCmd = &cobra.Command{
-	Use: "add",
+	Use:   "add",
+	Short: "Adds to config",
 }
 
 func init() {

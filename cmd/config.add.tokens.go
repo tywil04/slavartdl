@@ -7,9 +7,8 @@ import (
 )
 
 var configAddTokensCmd = &cobra.Command{
-	Use:   "tokens [flags] ...token",
-	Short: "adds token to config",
-	Long:  "adds token to config",
+	Use:   "tokens [flags] token(s)",
+	Short: "Adds session token to config",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config.CreateConfigIfNotExist()
 

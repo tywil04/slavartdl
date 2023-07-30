@@ -10,9 +10,7 @@ import (
 
 var configCmd = &cobra.Command{
 	Use:   "config [flags]",
-	Short: "get the config file location",
-	Long:  "get the config file location",
-	Args:  cobra.ExactArgs(0),
+	Short: "Returns the default config file location",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config.CreateConfigIfNotExist()
 

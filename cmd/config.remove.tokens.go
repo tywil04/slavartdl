@@ -9,9 +9,8 @@ import (
 )
 
 var configRemoveTokensCmd = &cobra.Command{
-	Use:   "tokens [flags] ...tokenIndex",
-	Short: "removes token using index shown when list command is used",
-	Long:  "removes token using index shown when list command is used",
+	Use:   "tokens [flags] tokenIndex(s)",
+	Short: "Removes session token using index shown by the list command",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config.CreateConfigIfNotExist()
 

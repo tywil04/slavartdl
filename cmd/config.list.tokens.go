@@ -10,8 +10,7 @@ import (
 
 var configListTokensCmd = &cobra.Command{
 	Use:   "tokens [flags]",
-	Short: "lists stored tokens",
-	Long:  "lists stored tokens",
+	Short: "Lists stored session tokens",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		config.CreateConfigIfNotExist()

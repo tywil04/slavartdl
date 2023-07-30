@@ -6,8 +6,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "slavartdl",
-	Short: "slavartdl",
-	Long:  "slavartdl",
+	Short: "SlavartDL:\nUtilitiy to download from SlavArt Divolt server",
 }
 
 func init() {

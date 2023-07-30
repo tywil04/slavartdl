@@ -5,7 +5,8 @@ import (
 )
 
 var configRemoveCmd = &cobra.Command{
-	Use: "remove",
+	Use:   "remove",
+	Short: "Remove from config",
 }
 
 func init() {

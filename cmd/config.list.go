@@ -5,7 +5,8 @@ import (
 )
 
 var configListCmd = &cobra.Command{
-	Use: "list",
+	Use:   "list",
+	Short: "Lists from config",
 }
 
 func init() {

@@ -16,9 +16,9 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:   "download [flags] ...url",
-	Short: "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
-	Long:  "download music from url using slavart (supports: tidal, qobuz, soundcloud, deezer, spotify, youtube and jiosaavn)",
+	Use:   "download [flags] url(s)",
+	Short: "Download music from url using SlavArt Divolt server",
+	Long:  "Download music from url using SlavArt Divolt server (Supports: Tidal, Qobuz, SoundCloud, Deezer, Spotify, YouTube and Jiosaavn)",
 	Args:  cobra.MinimumNArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		for _, arg := range args {
@@ -122,17 +122,16 @@ var downloadCmd = &cobra.Command{
 func init() {
 	flags := downloadCmd.Flags()
 
-	flags.StringP("output-directory", "o", "", "the output directory to store the downloaded music")
+	flags.StringP("outputDirs", "o", "", "the output directory to store the downloaded music")
 	downloadCmd.MarkFlagRequired("output-directory")
 	downloadCmd.MarkFlagDirname("output-directory")
 
-	flags.IntP("quality", "q", 0, "the quality of music to download, omit (or 0) for best quality available (1: 128kbps MP3/AAC, 2: 320kbps MP3/AAC, 3: 16bit 44.1kHz, 4: 24bit ≤96kHz, 5: 24bit ≤192kHz)")
+	flags.IntP("quality", "q", 0, "the quality of music to download, if omited best quality\n- 1: 128kbps MP3/AAC\n- 2: 320kbps MP3/AAC\n- 3: 16bit 44.1kHz\n- 4: 24bit ≤96kHz\n- 5: 24bit ≤192kHz")
+	flags.IntP("timeoutSeconds", "s", 0, "how long before link search is timed out in seconds\n[combines with --timeoutMinutes]")
+	flags.IntP("timeoutMinutes", "m", 0, "how long before link search is timed out in minutes\n[combines with --timeoutSeconds]")
 
-	flags.IntP("timeout-duration-seconds", "s", 0, "how long it takes to search for a link before it gives up in seconds (this combines with timeout-duration-minutes)")
-	flags.IntP("timeout-duration-minutes", "m", 2, "how long it takes to search for a link before it gives up in minutes (this combines with timeout-duration-seconds)")
-
-	flags.BoolP("ignore-cover", "c", false, "ignore cover.jpg when unzipping downloaded music")
-	flags.BoolP("ignore-subdirectories", "d", false, "ignore subdirectories when unzipping downloaded music")
+	flags.BoolP("ignoreCover", "c", false, "ignore cover.jpg when unzipping downloaded music")
+	flags.BoolP("ignoreSubdirs", "d", false, "ignore subdirectories when unzipping downloaded music")
 
 	rootCmd.AddCommand(downloadCmd)
 }

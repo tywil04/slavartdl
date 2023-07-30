@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/tywil04/slavartdl/cmd"
 	"github.com/tywil04/slavartdl/internal/config"
@@ -13,6 +14,6 @@ func main() {
 	}
 
 	if err := cmd.Execute(); err != nil {
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }
