@@ -4,18 +4,16 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-
-	"github.com/tywil04/slavartdl/internal/config"
+	"github.com/spf13/viper"
 )
 
 var configListTokensCmd = &cobra.Command{
 	Use:   "tokens [flags]",
 	Short: "Lists stored session tokens",
-	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		config.CreateConfigIfNotExist()
+		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
 
-		for index, token := range config.Public.DivoltSessionTokens {
+		for index, token := range sessionTokens {
 			fmt.Printf("[%d]: %s\n", index, token)
 		}
 	},

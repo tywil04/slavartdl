@@ -6,20 +6,22 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
+	"github.com/tywil04/slavartdl/internal/config"
 	"github.com/tywil04/slavartdl/internal/helpers"
 	"github.com/tywil04/slavartdl/internal/slavart"
 )
 
 var downloadCmd = &cobra.Command{
-	Use:   "download [flags] url(s)",
-	Short: "Download music from url using SlavArt Divolt server",
-	Long:  "Download music from url using SlavArt Divolt server (Supports: Tidal, Qobuz, SoundCloud, Deezer, Spotify, YouTube and Jiosaavn)",
-	Args:  cobra.MinimumNArgs(1),
+	Use:          "download [flags] url(s)",
+	Short:        "Download music from url using SlavArt Divolt server",
+	Long:         "Download music from url using SlavArt Divolt server (Supports: Tidal, Qobuz, SoundCloud, Deezer, Spotify, YouTube and Jiosaavn)",
+	Args:         cobra.MinimumNArgs(1),
+	SilenceUsage: true,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		for _, arg := range args {
 			parsedUrl, err := url.ParseRequestURI(arg)
@@ -45,49 +47,101 @@ var downloadCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
+		// optional
+		configPathRel, err := flags.GetString("configPath")
+		if err != nil {
+			return fmt.Errorf("unknown error when getting '--configPath'")
+		}
+
+		configPath, err := filepath.Abs(configPathRel)
+		if err != nil {
+			return fmt.Errorf("failed to resolve relative 'configPath' into absolute path")
+		}
+
+		// load config
+		if err := config.Load(configPathRel == "", configPath); err != nil {
+			return fmt.Errorf("failed to load config")
+		}
+
 		// required
-		outputDirectory, err := filepath.Abs(flags.Lookup("output-directory").Value.String())
+		outputDirRel, err := flags.GetString("outputDir")
 		if err != nil {
-			return err
+			return fmt.Errorf("unknown error when getting '--outputDir'")
+		}
+
+		if outputDirRel == "" {
+			outputDirRel = viper.GetString("downloadcmd.outputdir")
+			if outputDirRel == "" {
+				return fmt.Errorf("no outputDir provided in config or '--outputDir'")
+			}
+		}
+
+		outputDir, err := filepath.Abs(outputDirRel)
+		if err != nil {
+			return fmt.Errorf("failed to resolve relative 'outputDir' into absolute path")
 		}
 
 		// optional
-		quality, err := strconv.Atoi(flags.Lookup("quality").Value.String())
+		quality, err := flags.GetInt("quality")
 		if err != nil {
-			return err
+			return fmt.Errorf("unknown error when getting '--quality'")
+		}
+
+		if quality == 0 {
+			quality = viper.GetInt("downloadcmd.quality")
 		}
 
 		// optional
-		timeoutDurationSeconds, err := strconv.Atoi(flags.Lookup("timeout-duration-seconds").Value.String())
+		timeoutSeconds, err := flags.GetInt("timeoutSeconds")
 		if err != nil {
-			return err
+			return fmt.Errorf("unknown error when getting '--timeoutSeconds'")
+		}
+
+		if timeoutSeconds == 0 {
+			timeoutSeconds = viper.GetInt("downloadcmd.timeout.seconds")
 		}
 
 		// optional
-		timeoutDurationMinutes, err := strconv.Atoi(flags.Lookup("timeout-duration-minutes").Value.String())
+		timeoutMinutes, err := flags.GetInt("timeoutMinutes")
 		if err != nil {
-			return err
+			return fmt.Errorf("unknown error when getting '--timeoutMinutes'")
+		}
+
+		if timeoutMinutes == 0 {
+			timeoutMinutes = viper.GetInt("downloadcmd.timeout.minutes")
+		}
+
+		if timeoutSeconds == 0 && timeoutMinutes == 0 {
+			return fmt.Errorf("total timeout is 0, unable to continue")
 		}
 
 		// optional
-		ignoreCover, err := strconv.ParseBool(flags.Lookup("ignore-cover").Value.String())
+		ignoreCover, err := flags.GetBool("ignoreCover")
 		if err != nil {
-			return err
+			return fmt.Errorf("unknown error when getting '--ignoreCover'")
+		}
+
+		if !ignoreCover {
+			ignoreCover = viper.GetBool("downloadcmd.ignore.cover")
 		}
 
 		// optional
-		ignoreSubdirectories, err := strconv.ParseBool(flags.Lookup("ignore-subdirectories").Value.String())
+		ignoreSubdirs, err := flags.GetBool("ignoreSubdirs")
 		if err != nil {
-			return err
+			return fmt.Errorf("unknown error when getting '--ignoreSubdirs'")
+		}
+
+		if !ignoreSubdirs {
+			ignoreSubdirs = viper.GetBool("downloadcmd.ignore.subdirs")
 		}
 
 		timeoutTime := time.Now().
-			Add(time.Minute * time.Duration(timeoutDurationMinutes)).
-			Add(time.Second * time.Duration(timeoutDurationSeconds))
+			Add(time.Minute * time.Duration(timeoutMinutes)).
+			Add(time.Second * time.Duration(timeoutSeconds))
 
-		for _, arg := range args {
+		for _, link := range args {
 			fmt.Println("Getting download link...")
-			downloadLink, err := slavart.GetDownloadLinkFromSlavart(arg, quality, timeoutTime)
+			downloadLink, err := slavart.GetDownloadLinkFromSlavart(link, quality, timeoutTime)
 			if err != nil {
 				return err
 			}
@@ -107,7 +161,7 @@ var downloadCmd = &cobra.Command{
 			}
 
 			fmt.Println("\nUnzipping...")
-			err = helpers.Unzip(tempFilePath, outputDirectory, ignoreSubdirectories, ignoreCover)
+			err = helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover)
 			if err != nil {
 				return err
 			}
@@ -122,16 +176,16 @@ var downloadCmd = &cobra.Command{
 func init() {
 	flags := downloadCmd.Flags()
 
-	flags.StringP("outputDirs", "o", "", "the output directory to store the downloaded music")
-	downloadCmd.MarkFlagRequired("output-directory")
-	downloadCmd.MarkFlagDirname("output-directory")
+	flags.StringP("outputDir", "o", "", "the output directory to store the downloaded music")
+	downloadCmd.MarkFlagDirname("outputDir")
 
-	flags.IntP("quality", "q", 0, "the quality of music to download, if omited best quality\n- 1: 128kbps MP3/AAC\n- 2: 320kbps MP3/AAC\n- 3: 16bit 44.1kHz\n- 4: 24bit ≤96kHz\n- 5: 24bit ≤192kHz")
+	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config")
+
+	flags.IntP("quality", "q", 0, "the quality of music to download\n- 0: best quality available\n- 1: 128kbps MP3/AAC\n- 2: 320kbps MP3/AAC\n- 3: 16bit 44.1kHz\n- 4: 24bit ≤96kHz\n- 5: 24bit ≤192kHz")
 	flags.IntP("timeoutSeconds", "s", 0, "how long before link search is timed out in seconds\n[combines with --timeoutMinutes]")
 	flags.IntP("timeoutMinutes", "m", 0, "how long before link search is timed out in minutes\n[combines with --timeoutSeconds]")
 
 	flags.BoolP("ignoreCover", "c", false, "ignore cover.jpg when unzipping downloaded music")
 	flags.BoolP("ignoreSubdirs", "d", false, "ignore subdirectories when unzipping downloaded music")
-
 	rootCmd.AddCommand(downloadCmd)
 }

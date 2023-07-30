@@ -1,98 +1,84 @@
 package config
 
 import (
-	"encoding/json"
+	"bytes"
+	"fmt"
 	"os"
+	"path/filepath"
+
+	"github.com/spf13/viper"
 )
 
-type Config struct {
-	DivoltSessionTokens []string `json:"DivoltSessionTokens"`
-}
+func Load(defaultHandling bool, customPath string) error {
+	var configDir string
+	var configName string
+	var configFile string
 
-const (
-	ConfigDirectory = "/slavart"
-	ConfigFilePath  = "/config.json"
-)
-
-var Public Config
-
-func CreateConfigIfNotExist() error {
-	userConfigDirectory, err := os.UserConfigDir()
-	if err != nil {
-		return err
-	}
-
-	configDirectory := userConfigDirectory + ConfigDirectory
-	configFilePath := configDirectory + ConfigFilePath
-
-	_, err = os.Stat(configDirectory)
-	if os.IsNotExist(err) {
-		os.Mkdir(configDirectory, 0777)
-	} else if err != nil {
-		return err
-	}
-
-	_, err = os.Stat(configFilePath)
-	if os.IsNotExist(err) {
-		configFile, err := os.Create(configFilePath)
+	if defaultHandling {
+		var err error
+		configDir, err = os.UserConfigDir()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to find user config directory")
 		}
 
-		if err := json.NewEncoder(configFile).Encode(Config{}); err != nil {
-			return err
+		configName = "config.json"
+		configDir += string(os.PathSeparator) + "SlavartDL"
+		configFile = configDir + string(os.PathSeparator) + configName
+	} else {
+		file, err := os.Stat(customPath)
+		if err != nil {
+			return fmt.Errorf("failed to find custom config from 'configPath'")
 		}
 
-		configFile.Close()
-	} else if err != nil {
-		return err
+		if file.IsDir() {
+			configName = "config.json"
+			configDir = customPath
+			configFile = configDir + string(os.PathSeparator) + configName
+		} else {
+			configName = file.Name()
+			configDir = filepath.Dir(customPath)
+			configFile = customPath
+		}
+	}
+
+	viper.SetConfigName(configName)
+	viper.SetConfigType("json")
+	viper.AddConfigPath(configDir)
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			if err := os.Mkdir(configDir, os.ModePerm); err != nil && !os.IsExist(err) {
+				return fmt.Errorf("failed to create user config directory")
+			}
+
+			var defaultConfig = bytes.NewBuffer([]byte(`{
+"divoltSessionTokens": [],
+"downloadCmd": {
+	"outputDir": "",
+	"quality": 0,
+	"timeout": {
+		"seconds": 0,
+		"minutes": 2
+	},
+	"ignore": {
+		"cover": false,
+		"subdirs": false
+	}
+}
+}`))
+
+			if err := viper.ReadConfig(defaultConfig); err != nil {
+				return fmt.Errorf("failed to load default config")
+			}
+
+			if err := viper.WriteConfigAs(configFile); err != nil {
+				return fmt.Errorf("failed to write default config")
+			}
+		} else {
+			// config was found but there was some other error
+			return fmt.Errorf("unknown error with config")
+		}
 	}
 
 	return nil
-}
-
-func LoadConfig() error {
-	userConfigDirectory, err := os.UserConfigDir()
-	if err != nil {
-		return err
-	}
-
-	if err := CreateConfigIfNotExist(); err != nil {
-		return err
-	}
-
-	configFile, err := os.Open(userConfigDirectory + ConfigDirectory + ConfigFilePath)
-	if err != nil {
-		return err
-	}
-	defer configFile.Close()
-
-	if err := json.NewDecoder(configFile).Decode(&Public); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func WriteConfig() error {
-	userConfigDirectory, err := os.UserConfigDir()
-	if err != nil {
-		return err
-	}
-
-	configFile, err := os.OpenFile(userConfigDirectory+ConfigDirectory+ConfigFilePath, os.O_RDWR, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	defer configFile.Close()
-
-	return json.NewEncoder(configFile).Encode(Public)
-}
-
-func GetConfigPath() (string, error) {
-	userConfigDirectory, err := os.UserConfigDir()
-	if err != nil {
-		return "", err
-	}
-	return userConfigDirectory + ConfigDirectory + ConfigFilePath, nil
 }
