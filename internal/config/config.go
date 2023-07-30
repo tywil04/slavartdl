@@ -52,19 +52,19 @@ func Load(defaultHandling bool, customPath string) error {
 			}
 
 			var defaultConfig = bytes.NewBuffer([]byte(`{
-"divoltSessionTokens": [],
-"downloadCmd": {
-	"outputDir": "",
-	"quality": 0,
-	"timeout": {
-		"seconds": 0,
-		"minutes": 2
-	},
-	"ignore": {
-		"cover": false,
-		"subdirs": false
+	"divoltsessiontokens": [],
+	"downloadcmd": {
+		"outputdir": "",
+		"quality": 0,
+		"timeout": {
+			"seconds": 0,
+			"minutes": 2
+		},
+		"ignore": {
+			"cover": false,
+			"subdirs": false
+		},
 	}
-}
 }`))
 
 			if err := viper.ReadConfig(defaultConfig); err != nil {
