@@ -135,6 +135,16 @@ var downloadCmd = &cobra.Command{
 			ignoreSubdirs = viper.GetBool("downloadcmd.ignore.subdirs")
 		}
 
+		// optional
+		skipUnzip, err := flags.GetBool("skipUnzip")
+		if err != nil {
+			return fmt.Errorf("unknown error when getting '--skipUnzip'")
+		}
+
+		if !skipUnzip {
+			skipUnzip = viper.GetBool("downloadcmd.skip.unzip")
+		}
+
 		timeoutTime := time.Now().
 			Add(time.Minute * time.Duration(timeoutMinutes)).
 			Add(time.Second * time.Duration(timeoutSeconds))
@@ -160,10 +170,25 @@ var downloadCmd = &cobra.Command{
 				return err
 			}
 
-			fmt.Println("\nUnzipping...")
-			err = helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover)
-			if err != nil {
-				return err
+			if !skipUnzip {
+				fmt.Println("\nUnzipping...")
+				if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover); err != nil {
+					return err
+				}
+			} else {
+				zipName, err := helpers.GetZipName(tempFilePath)
+				if err != nil {
+					return err
+				}
+
+				fmt.Println(filepath.Clean(zipName))
+
+				outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
+				// temp file gets deleted later
+				if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
+					return nil
+				}
+
 			}
 
 			fmt.Println("\nDone!")
@@ -187,5 +212,7 @@ func init() {
 
 	flags.BoolP("ignoreCover", "c", false, "ignore cover.jpg when unzipping downloaded music")
 	flags.BoolP("ignoreSubdirs", "d", false, "ignore subdirectories when unzipping downloaded music")
+	flags.BoolP("skipUnzip", "z", false, "skip unzipping downloaded music")
+
 	rootCmd.AddCommand(downloadCmd)
 }

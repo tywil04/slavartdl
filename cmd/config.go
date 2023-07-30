@@ -9,8 +9,9 @@ import (
 )
 
 var configCmd = &cobra.Command{
-	Use:   "config [flags]",
-	Short: "Returns the default config file location",
+	Use:           "config [flags]",
+	Short:         "Returns the default config file location",
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// load config
 		if err := config.Load(true, ""); err != nil {
