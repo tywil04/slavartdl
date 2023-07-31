@@ -14,7 +14,6 @@ var ConfigName string
 var ConfigFile string
 
 func Load(defaultHandling bool, customPath string) error {
-
 	if defaultHandling {
 		var err error
 		ConfigDir, err = os.UserConfigDir()
@@ -27,18 +26,30 @@ func Load(defaultHandling bool, customPath string) error {
 		ConfigFile = ConfigDir + string(os.PathSeparator) + ConfigName
 	} else {
 		file, err := os.Stat(customPath)
-		if err != nil {
+		if err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("failed to find custom config from 'configPath'")
 		}
 
-		if file.IsDir() {
+		if file != nil && file.IsDir() {
 			ConfigName = "config.json"
 			ConfigDir = customPath
 			ConfigFile = ConfigDir + string(os.PathSeparator) + ConfigName
 		} else {
-			ConfigName = file.Name()
-			ConfigDir = filepath.Dir(customPath)
-			ConfigFile = customPath
+			if os.IsNotExist(err) {
+				altFile, err := os.Create(customPath)
+				if err != nil {
+					fmt.Println(customPath)
+					return fmt.Errorf("failed to create config file of that provided name")
+				}
+
+				ConfigName = altFile.Name()
+				ConfigDir = filepath.Dir(customPath)
+				ConfigFile = customPath
+			} else {
+				ConfigName = file.Name()
+				ConfigDir = filepath.Dir(customPath)
+				ConfigFile = customPath
+			}
 		}
 	}
 
