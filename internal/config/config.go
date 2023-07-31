@@ -14,6 +14,7 @@ var ConfigName string
 var ConfigFile string
 
 func Load(defaultHandling bool, customPath string) error {
+	// default handling means it uses the default config
 	if defaultHandling {
 		var err error
 		ConfigDir, err = os.UserConfigDir()
@@ -25,39 +26,31 @@ func Load(defaultHandling bool, customPath string) error {
 		ConfigDir += string(os.PathSeparator) + "SlavartDL"
 		ConfigFile = ConfigDir + string(os.PathSeparator) + ConfigName
 	} else {
-		file, err := os.Stat(customPath)
-		if err != nil && !os.IsNotExist(err) {
-			return fmt.Errorf("failed to find custom config from 'configPath'")
-		}
-
-		if file != nil && file.IsDir() {
+		fileInfo, err := os.Stat(customPath)
+		if err == nil && fileInfo.IsDir() {
+			// directory exists
 			ConfigName = "config.json"
 			ConfigDir = customPath
 			ConfigFile = ConfigDir + string(os.PathSeparator) + ConfigName
+		} else if err == nil || (err != nil && os.IsNotExist(err)) {
+			// either file does exist, or it doesnt
+			// if it doesnt exist viper will create it
+			dirName, fileName := filepath.Split(customPath)
+			ConfigName = fileName
+			ConfigDir = dirName
+			ConfigFile = customPath
 		} else {
-			if os.IsNotExist(err) {
-				altFile, err := os.Create(customPath)
-				if err != nil {
-					fmt.Println(customPath)
-					return fmt.Errorf("failed to create config file of that provided name")
-				}
-
-				ConfigName = altFile.Name()
-				ConfigDir = filepath.Dir(customPath)
-				ConfigFile = customPath
-			} else {
-				ConfigName = file.Name()
-				ConfigDir = filepath.Dir(customPath)
-				ConfigFile = customPath
-			}
+			return fmt.Errorf("unknown error when handling custom config")
 		}
 	}
 
+	// configure viper
 	viper.SetConfigName(ConfigName)
 	viper.SetConfigType("json")
 	viper.AddConfigPath(ConfigDir)
 
 	if err := viper.ReadInConfig(); err != nil {
+		// file not found
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			if err := os.Mkdir(ConfigDir, os.ModePerm); err != nil && !os.IsExist(err) {
 				return fmt.Errorf("failed to create user config directory")
@@ -82,10 +75,12 @@ func Load(defaultHandling bool, customPath string) error {
 	}
 }`))
 
+			// load default config
 			if err := viper.ReadConfig(defaultConfig); err != nil {
 				return fmt.Errorf("failed to load default config")
 			}
 
+			// write default config
 			if err := viper.WriteConfigAs(ConfigFile); err != nil {
 				return fmt.Errorf("failed to write default config")
 			}
