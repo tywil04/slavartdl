@@ -31,12 +31,10 @@ var configRemoveTokensCmd = &cobra.Command{
 
 		// load config
 		if err := config.Load(configPathRel == "", configPath); err != nil {
-			return fmt.Errorf("failed to load config")
+			return err
 		}
 
 		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-
-		fmt.Println(sessionTokens)
 
 		for index := range sessionTokens {
 			for _, arg := range args {
@@ -54,8 +52,6 @@ var configRemoveTokensCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println(resultingSessionTokens)
-
 		viper.Set("divoltsessiontokens", resultingSessionTokens)
 
 		return config.Offload()
@@ -65,7 +61,7 @@ var configRemoveTokensCmd = &cobra.Command{
 func init() {
 	flags := configRemoveTokensCmd.Flags()
 
-	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config")
+	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
 	configRemoveCmd.AddCommand(configRemoveTokensCmd)
 }

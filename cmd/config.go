@@ -13,9 +13,9 @@ var configCmd = &cobra.Command{
 	Short:         "Returns the default config file location",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// load config
+		// load default config
 		if err := config.Load(true, ""); err != nil {
-			return fmt.Errorf("failed to load config")
+			return err
 		}
 
 		fmt.Printf("The config file is located at: %s\n", viper.ConfigFileUsed())

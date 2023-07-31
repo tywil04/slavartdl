@@ -31,7 +31,7 @@ var configAddTokensCmd = &cobra.Command{
 
 		// load config
 		if err := config.Load(configPathRel == "", configPath); err != nil {
-			return fmt.Errorf("failed to load config")
+			return err
 		}
 
 		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
@@ -52,7 +52,7 @@ var configAddTokensCmd = &cobra.Command{
 func init() {
 	flags := configAddTokensCmd.Flags()
 
-	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config")
+	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
 	configAddCmd.AddCommand(configAddTokensCmd)
 }

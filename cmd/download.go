@@ -60,7 +60,7 @@ var downloadCmd = &cobra.Command{
 
 		// load config
 		if err := config.Load(configPathRel == "", configPath); err != nil {
-			return fmt.Errorf("failed to load config")
+			return err
 		}
 
 		// required
@@ -204,7 +204,7 @@ func init() {
 	flags.StringP("outputDir", "o", "", "the output directory to store the downloaded music")
 	downloadCmd.MarkFlagDirname("outputDir")
 
-	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config")
+	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
 	flags.IntP("quality", "q", 0, "the quality of music to download\n- 0: best quality available\n- 1: 128kbps MP3/AAC\n- 2: 320kbps MP3/AAC\n- 3: 16bit 44.1kHz\n- 4: 24bit ≤96kHz\n- 5: 24bit ≤192kHz")
 	flags.IntP("timeoutSeconds", "s", 0, "how long before link search is timed out in seconds\n[combines with --timeoutMinutes]")

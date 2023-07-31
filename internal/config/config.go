@@ -36,6 +36,11 @@ func Load(defaultHandling bool, customPath string) error {
 			// either file does exist, or it doesnt
 			// if it doesnt exist viper will create it
 			dirName, fileName := filepath.Split(customPath)
+			ext := filepath.Ext(fileName)
+			if ext != ".json" {
+				return fmt.Errorf("custom config file must end in .json")
+			}
+
 			ConfigName = fileName
 			ConfigDir = dirName
 			ConfigFile = customPath
