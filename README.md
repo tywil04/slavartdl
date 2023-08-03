@@ -61,7 +61,7 @@ You can have multiple session tokens that will randomly get used per request.
       "cover": bool,
       "subdirs": bool
     },
-    "outputdir": "~/Music/test",
+    "outputdir": string,
     "quality": int,
     "timeout": {
       "minutes": int,
