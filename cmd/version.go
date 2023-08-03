@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tywil04/slavartdl/internal/update"
 )
 
 var versionCmd = &cobra.Command{
@@ -11,7 +13,7 @@ var versionCmd = &cobra.Command{
 	Short:         "Returns the version",
 	SilenceErrors: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Version: v1.1.5")
+		fmt.Printf("Version: %s\n", update.Version)
 	},
 }
 
