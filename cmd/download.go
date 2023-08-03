@@ -211,7 +211,7 @@ var downloadCmd = &cobra.Command{
 
 			fmt.Println("\nDownloading zip...")
 			// this will create a temp file in the default location
-			tempFile, err := os.CreateTemp("", "slavartdownloader.*.zip")
+			tempFile, err := os.CreateTemp("", "slavartdl.*.zip")
 			if err != nil {
 				return err
 			}
