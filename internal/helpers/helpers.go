@@ -40,7 +40,10 @@ func JsonApiRequest(method, url string, responseWriter any, data, headers map[st
 
 	// if the response is not a successful http status
 	if !(response.StatusCode >= 200 && response.StatusCode <= 299) {
-		return fmt.Errorf("unsuccessful request got http status code: %d", response.StatusCode)
+		var body = bytes.NewBuffer([]byte{})
+		io.Copy(body, response.Body)
+
+		return fmt.Errorf("unsuccessful request got http status code: %d, with a body of: %s", response.StatusCode, body.String())
 	}
 
 	if err := json.NewDecoder(response.Body).Decode(&responseWriter); err != nil {
