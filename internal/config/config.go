@@ -116,4 +116,5 @@ func UpdateStructure() {
 			viper.Set(key, value)
 		}
 	}
+	Offload()
 }
