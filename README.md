@@ -22,6 +22,8 @@ Heres what the arguments mean:
 Heres a brief structure of the commands:
 ```
 slavartdl download url(s)
+slavartdl version
+slavartdl update                              # updates slavartdl
 slavartdl config add
 slavartdl config add tokens token(s)
 slavartdl config list
