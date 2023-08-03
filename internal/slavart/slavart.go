@@ -2,14 +2,12 @@ package slavart
 
 import (
 	"errors"
-	"fmt"
-	"math/rand"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/internal/helpers"
 )
 
@@ -47,7 +45,7 @@ type RevoltMessage struct {
 }
 
 // check if bot is down
-func GetSlavartBotOnlineStatus(sessionToken string) (bool, error) {
+func GetBotOnlineStatus(sessionToken string) (bool, error) {
 	serverMemberResponse := struct {
 		Online bool `json:"online"`
 	}{}
@@ -65,24 +63,8 @@ func GetSlavartBotOnlineStatus(sessionToken string) (bool, error) {
 	return serverMemberResponse.Online, err
 }
 
-// this is because we dont want to spam the bot service with a single account, so we use multiple
-func GetRandomDivoltSessionToken() (string, error) {
-	rand.Seed(time.Now().UnixNano())
-
-	sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-	length := len(sessionTokens)
-	if length == 0 {
-		return "", errors.New("no session tokens found in config")
-	} else if length == 1 {
-		return sessionTokens[0], nil
-	}
-	random := rand.Intn(length - 1)
-
-	return sessionTokens[random], nil
-}
-
 // send message in request channel
-func SendDownloadMessage(sessionToken, link string) (string, error) {
+func SendDownloadMessage(sessionToken, link string, quality int) (string, error) {
 	downloadRequestResponse := struct {
 		MessageId string `json:"_id"`
 	}{}
@@ -92,7 +74,7 @@ func SendDownloadMessage(sessionToken, link string) (string, error) {
 		Api+"/channels/"+RequestChannel+"/messages",
 		&downloadRequestResponse,
 		map[string]string{
-			"content": "!dl " + link,
+			"content": "!dl " + link + " " + strconv.Itoa(quality),
 		},
 		map[string]string{
 			"X-Session-Token": sessionToken,
@@ -143,6 +125,26 @@ func GetRequestMessages(sessionToken string) ([]RevoltMessage, error) {
 	return downloadRequestFinishedTestResponse, err
 }
 
+func GetSessionTokenFromCredentials(email, password string) (string, error) {
+	loginResponse := struct {
+		Token string `json:"token"`
+	}{}
+
+	err := helpers.JsonApiRequest(
+		http.MethodPost,
+		Api+"/auth/session/login",
+		&loginResponse,
+		map[string]string{
+			"email":         email,
+			"password":      password,
+			"friendly_name": "SlavartDL Tool (github.com/tywil04/slavartdl)",
+		},
+		nil,
+	)
+
+	return loginResponse.Token, err
+}
+
 func CheckForErrorMessageInRequestMessages(requestMessageId string, messages []RevoltMessage) (string, bool) {
 	for _, revoltMessage := range messages {
 		for _, reply := range revoltMessage.Replies {
@@ -170,27 +172,17 @@ func SearchForDownloadLinkInUploadMessages(link string, messages []RevoltMessage
 	return "", false
 }
 
-func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time) (string, error) {
-	sessionToken, err := GetRandomDivoltSessionToken()
-	if err != nil {
-		return "", err
-	}
-
-	realLink := link
-	if quality != 0 {
-		realLink = fmt.Sprintf("%s %d", link, quality-1)
-	}
-
+func GetDownloadLinkFromSlavart(sessionToken, link string, quality int, timeoutTime time.Time) (string, error) {
 	messages, err := GetUploadMessages(sessionToken)
 	if err != nil {
 		return "", err
 	}
 
-	if downloadLink, ok := SearchForDownloadLinkInUploadMessages(realLink, messages); ok {
+	if downloadLink, ok := SearchForDownloadLinkInUploadMessages(link, messages); ok {
 		return downloadLink, nil
 	}
 
-	online, err := GetSlavartBotOnlineStatus(sessionToken)
+	online, err := GetBotOnlineStatus(sessionToken)
 	if err != nil {
 		return "", err
 	}
@@ -199,7 +191,7 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 		return "", errors.New("bot isn't online")
 	}
 
-	requestMessageId, err := SendDownloadMessage(sessionToken, realLink)
+	requestMessageId, err := SendDownloadMessage(sessionToken, link, quality)
 	if err != nil {
 		return "", err
 	}
@@ -228,7 +220,7 @@ func GetDownloadLinkFromSlavart(link string, quality int, timeoutTime time.Time)
 			return "", err
 		}
 
-		if downloadLink, ok := SearchForDownloadLinkInUploadMessages(realLink, messages); ok {
+		if downloadLink, ok := SearchForDownloadLinkInUploadMessages(link, messages); ok {
 			return downloadLink, nil
 		}
 	}

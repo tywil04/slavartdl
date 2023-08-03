@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -150,8 +151,60 @@ var downloadCmd = &cobra.Command{
 			Add(time.Second * time.Duration(timeoutSeconds))
 
 		for _, link := range args {
+			// randomly select a session token to avoid using the same account all the time
+			var sessionToken string
+			sessionTokens := viper.GetStringSlice("divoltsessiontokens")
+			loginCredentialsInterface := viper.Get("divoltlogincredentials")
+
+			if loginCredentials, ok := loginCredentialsInterface.([]any); ok {
+				for _, credentialAny := range loginCredentials {
+					// if any issue is encountered skip these credentials
+
+					credential, ok := credentialAny.(map[string]any)
+					if !ok {
+						continue
+					}
+
+					emailInterface, ok := credential["email"]
+					if !ok {
+						continue
+					}
+
+					email, ok := emailInterface.(string)
+					if !ok {
+						continue
+					}
+
+					passwordInterface, ok := credential["password"]
+					if !ok {
+						continue
+					}
+
+					password, ok := passwordInterface.(string)
+					if !ok {
+						continue
+					}
+
+					token, err := slavart.GetSessionTokenFromCredentials(email, password)
+					if err != nil {
+						continue
+					}
+
+					sessionTokens = append(sessionTokens, token)
+				}
+			}
+
+			length := len(sessionTokens)
+			if length == 0 {
+				return fmt.Errorf("no session tokens found in config")
+			} else if length == 1 {
+				sessionToken = sessionTokens[0]
+			} else {
+				sessionToken = sessionTokens[rand.Intn(length)]
+			}
+
 			fmt.Println("Getting download link...")
-			downloadLink, err := slavart.GetDownloadLinkFromSlavart(link, quality, timeoutTime)
+			downloadLink, err := slavart.GetDownloadLinkFromSlavart(sessionToken, link, quality, timeoutTime)
 			if err != nil {
 				return err
 			}

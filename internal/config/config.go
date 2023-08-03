@@ -15,7 +15,8 @@ var ConfigName string
 var ConfigFile string
 
 var DefaultStructure = map[string]any{
-	"divoltsessiontokens": []string{},
+	"divoltsessiontokens":    []string{},
+	"divoltlogincredentials": []map[string]any{},
 	"downloadcmd": map[string]any{
 		"outputdir": "",
 		"quality":   0,

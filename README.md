@@ -42,8 +42,38 @@ Session tokens are stored in a local config file (use the `config` command to fi
 
 You can have multiple session tokens that will randomly get used per request.
 
+### Structure
+```
+{
+  "divoltlogincredentials": [
+    {
+      "email": string,
+      "password": string
+    }
+    ...
+  ],
+  "divoltsessiontokens": [
+    string 
+    ...
+  ],
+  "downloadcmd": {
+    "ignore": {
+      "cover": bool,
+      "subdirs": bool
+    },
+    "outputdir": "~/Music/test",
+    "quality": int,
+    "timeout": {
+      "minutes": int,
+      "seconds": int
+    }
+  }
+}
+```
+You will require either at least one session token in `divoltsessiontokens` or at least one dictionary with an email and password in `divoltlogincredentials`. Both of these allow this tool to access your Divolt account which is required for this bot to function. Please don't use your main account!
+
 ### Getting session tokens to add to config
-Getting a session token is easy. Just note that once you get your session token, for it to remain active you must close the divolt tab and do not logout.
+If you want to get your session token, its easy. Just note that once you get your session token, for it to remain active you must close the divolt tab and do not logout.
 
 Follows these steps to get a session token:
 - Log in to Divolt.
