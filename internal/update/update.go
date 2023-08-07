@@ -1,16 +1,19 @@
 package update
 
 import (
-	"crypto"
+	"archive/tar"
+	"archive/zip"
+	"bytes"
+	"compress/gzip"
+	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
-
-	"github.com/minio/selfupdate"
 
 	"github.com/tywil04/slavartdl/internal/helpers"
 )
@@ -49,7 +52,7 @@ func parseVersionTag(version string) (int, int, int, error) {
 }
 
 // checks if there is a new update avaiable, if there is it updates
-func Update() (bool, error) {
+func Update(force bool) (string, error) {
 	releasesResponse := struct {
 		TagName string `json:"tag_name"`
 		Assets  []struct {
@@ -66,23 +69,23 @@ func Update() (bool, error) {
 		nil,
 	)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	apiMajor, apiMinor, apiPatch, err := parseVersionTag(releasesResponse.TagName)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	pkgMajor, pkgMinor, pkgPatch, err := parseVersionTag(Version)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	// check if current version is equal to or greater than fetched version
-	if apiMajor <= pkgMajor && apiMinor <= pkgMinor && apiPatch <= pkgPatch {
+	if !force && (apiMajor <= pkgMajor && apiMinor <= pkgMinor && apiPatch <= pkgPatch) {
 		// no update, no error
-		return false, nil
+		return "", nil
 	}
 
 	// update is available
@@ -114,45 +117,112 @@ func Update() (bool, error) {
 	}
 
 	if assetDownloadUrl == "" || signatureDownloadUrl == "" {
-		return false, fmt.Errorf("failed to get asset and asset signature download url for your system, supported platforms are linux [arm64 amd64], darwin [arm64 amd64], windows [amd64]")
+		return releasesResponse.TagName, fmt.Errorf("failed to get asset and asset signature download url for your system, supported platforms are linux [arm64 amd64], darwin [arm64 amd64], windows [amd64]")
 	}
 
 	assetResponse, err := http.Get(assetDownloadUrl)
 	if err != nil || (assetResponse.StatusCode < 200 && assetResponse.StatusCode > 299) {
-		return false, fmt.Errorf("failed to download asset")
+		return releasesResponse.TagName, fmt.Errorf("failed to download asset")
 	}
 	defer assetResponse.Body.Close()
 
 	signatureResponse, err := http.Get(signatureDownloadUrl)
 	if err != nil || (assetResponse.StatusCode < 200 && assetResponse.StatusCode > 299) {
-		return false, fmt.Errorf("failed to download asset signature")
+		return releasesResponse.TagName, fmt.Errorf("failed to download asset signature")
 	}
 	defer signatureResponse.Body.Close()
 
-	signatureBody, err := io.ReadAll(signatureResponse.Body)
+	assetBuffer := bytes.NewBuffer([]byte{})
+	if _, err := io.Copy(assetBuffer, assetResponse.Body); err != nil {
+		return releasesResponse.TagName, fmt.Errorf("failed to copy assetResponse.body to assetBuffer")
+	}
+	assetRaw := assetBuffer.Bytes()
+
+	signatureRaw, err := io.ReadAll(signatureResponse.Body)
 	if err != nil {
-		return false, fmt.Errorf("failed to parse signature from signature response")
+		return releasesResponse.TagName, fmt.Errorf("failed to parse signature from signature response")
 	}
-	signature := strings.ReplaceAll(string(signatureBody), "\n", "")
+	signature := strings.ReplaceAll(string(signatureRaw), "\n", "")
 
-	checksum, err := hex.DecodeString(signature)
+	downloadedFileSignatureRaw := md5.Sum(assetRaw)
+	downloadedFileSignature := hex.EncodeToString(downloadedFileSignatureRaw[:])
+
+	if signature != downloadedFileSignature {
+		return releasesResponse.TagName, fmt.Errorf("downloaded file doesnt match signature")
+	}
+
+	executablePath, err := os.Executable()
 	if err != nil {
-		return false, fmt.Errorf("failed to parse asset signature")
+		return releasesResponse.TagName, fmt.Errorf("failed to find path to currently running executable")
 	}
 
-	updateOptions := selfupdate.Options{
-		Hash:     crypto.MD5,
-		Checksum: checksum,
-	}
+	if extension == "tar.gz" {
+		archive, err := gzip.NewReader(assetBuffer)
+		if err != nil {
+			return releasesResponse.TagName, fmt.Errorf("failed to load asset into gzip reader")
+		}
+		defer archive.Close()
 
-	if err := selfupdate.Apply(assetResponse.Body, updateOptions); err != nil {
-		if err = selfupdate.RollbackError(err); err != nil {
-			return false, fmt.Errorf("failed to rollback after unsuccessful update. %s", err.Error())
+		tarball := tar.NewReader(archive)
+		for {
+			header, err := tarball.Next()
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				continue
+			}
+
+			if header.Name == "slavartdl" {
+				if err := os.Remove(executablePath); err != nil {
+					return releasesResponse.TagName, fmt.Errorf("failed to remove currently running executable")
+				}
+
+				file, err := os.OpenFile(executablePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+				if err != nil {
+					fmt.Println(err)
+					return releasesResponse.TagName, fmt.Errorf("failed to open currently running executable")
+				}
+				defer file.Close()
+
+				if _, err := io.Copy(file, tarball); err != nil {
+					fmt.Println(err)
+					return releasesResponse.TagName, fmt.Errorf("failed to copy slavartdl from tarball into currently running executable")
+				}
+			}
+		}
+	} else {
+		archive, err := zip.NewReader(bytes.NewReader(assetRaw), int64(len(assetRaw)))
+		if err != nil {
+			return releasesResponse.TagName, fmt.Errorf("failed to load asset into zip")
+		}
+
+		for _, zipped := range archive.File {
+			if zipped.Name == "slavartdl" {
+				if err := os.Remove(executablePath); err != nil {
+					return releasesResponse.TagName, fmt.Errorf("failed to remove currently running executable")
+				}
+
+				file, err := os.OpenFile(executablePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+				if err != nil {
+					return releasesResponse.TagName, fmt.Errorf("failed to open currently running executable")
+				}
+				defer file.Close()
+
+				zipFile, err := zipped.Open()
+				if err != nil {
+					return releasesResponse.TagName, fmt.Errorf("failed to open file in zip archive")
+				}
+				defer zipFile.Close()
+
+				if _, err := io.Copy(file, zipFile); err != nil {
+					return releasesResponse.TagName, fmt.Errorf("failed to copy slavartdl from zip into currently running archive")
+				}
+
+				break
+			}
 		}
 	}
 
-	Version = releasesResponse.TagName
-
 	// successfully updated with no errors
-	return true, nil
+	return releasesResponse.TagName, nil
 }

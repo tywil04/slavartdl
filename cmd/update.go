@@ -9,17 +9,25 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:           "update [flags]",
-	Short:         "Updates this tool",
-	SilenceErrors: true,
+	Use:          "update [flags]",
+	Short:        "Updates this tool",
+	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		newUpdate, err := update.Update()
+		flags := cmd.Flags()
+
+		// optional
+		force, err := flags.GetBool("force")
+		if err != nil {
+			return fmt.Errorf("unknown error when getting '--force'")
+		}
+
+		version, err := update.Update(force)
 		if err != nil {
 			return err
 		}
 
-		if newUpdate {
-			fmt.Printf("Successfully updated to version %s!\n", update.Version)
+		if version != "" {
+			fmt.Printf("Successfully updated to version %s!\n", version)
 		} else {
 			fmt.Println("All up to date, no updated required!")
 		}
@@ -29,5 +37,9 @@ var updateCmd = &cobra.Command{
 }
 
 func init() {
+	flags := updateCmd.Flags()
+
+	flags.BoolP("force", "f", false, "forces update even if slavartdl is already on the latest version")
+
 	rootCmd.AddCommand(updateCmd)
 }
