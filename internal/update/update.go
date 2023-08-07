@@ -1,7 +1,6 @@
 package update
 
 import (
-	"bytes"
 	"crypto"
 	"encoding/hex"
 	"fmt"
