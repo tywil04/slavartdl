@@ -130,13 +130,13 @@ func Update() (bool, error) {
 	}
 	defer signatureResponse.Body.Close()
 
-	assetBody := bytes.NewBuffer([]byte{})
-	io.Copy(assetBody, assetResponse.Body)
+	signatureBody, err := io.ReadAll(signatureResponse.Body)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse signature from signature response")
+	}
+	signature := strings.ReplaceAll(string(signatureBody), "\n", "")
 
-	signatureBody := bytes.NewBuffer([]byte{})
-	io.Copy(signatureBody, signatureResponse.Body)
-
-	checksum, err := hex.DecodeString(assetBody.String())
+	checksum, err := hex.DecodeString(signature)
 	if err != nil {
 		return false, fmt.Errorf("failed to parse asset signature")
 	}
@@ -146,7 +146,7 @@ func Update() (bool, error) {
 		Checksum: checksum,
 	}
 
-	if err := selfupdate.Apply(assetBody, updateOptions); err != nil {
+	if err := selfupdate.Apply(assetResponse.Body, updateOptions); err != nil {
 		if err = selfupdate.RollbackError(err); err != nil {
 			return false, fmt.Errorf("failed to rollback after unsuccessful update. %s", err.Error())
 		}
