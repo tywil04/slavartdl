@@ -92,6 +92,9 @@ var downloadCmd = &cobra.Command{
 			quality = viper.GetInt("downloadcmd.quality")
 		}
 
+		// normalise quality to the same scale as the slavart bot. if quality is -1 it gets ignored later on
+		quality -= 1
+
 		// optional
 		timeoutSeconds, err := flags.GetInt("timeoutSeconds")
 		if err != nil {
