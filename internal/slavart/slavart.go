@@ -69,12 +69,17 @@ func SendDownloadMessage(sessionToken, link string, quality int) (string, error)
 		MessageId string `json:"_id"`
 	}{}
 
+	content := "!dl " + link
+	if quality != -1 {
+		content += " " + strconv.Itoa(quality)
+	}
+
 	err := helpers.JsonApiRequest(
 		http.MethodPost,
 		Api+"/channels/"+RequestChannel+"/messages",
 		&downloadRequestResponse,
 		map[string]string{
-			"content": "!dl " + link + " " + strconv.Itoa(quality),
+			"content": content,
 		},
 		map[string]string{
 			"X-Session-Token": sessionToken,
