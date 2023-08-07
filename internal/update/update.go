@@ -24,7 +24,7 @@ const signatureNameTemplate = "slavartdl-%s-%s-%s.%s.md5"
 // accepts version like 'v0.0.0'.
 // returns major, minor, patch ints
 func parseVersionTag(version string) (int, int, int, error) {
-	versionTrim := strings.TrimPrefix(Version, "v")
+	versionTrim := strings.TrimPrefix(version, "v")
 	majorMinorPatch := strings.Split(versionTrim, ".")
 
 	if len(majorMinorPatch) != 3 {
