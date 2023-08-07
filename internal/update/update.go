@@ -16,7 +16,7 @@ import (
 	"github.com/tywil04/slavartdl/internal/helpers"
 )
 
-var Version = "v1.1.7"
+var Version = "v1.1.8"
 
 const assetNameTemplate = "slavartdl-%s-%s-%s.%s"
 const signatureNameTemplate = "slavartdl-%s-%s-%s.%s.md5"
