@@ -150,7 +150,14 @@ func GetZipName(inputFilePath string) (string, error) {
 		return "", err
 	}
 	defer zip.Close()
-	return zip.File[0].Name, nil
+
+	// protect against zip slip
+	fileName := zip.File[0].Name
+	if strings.Contains(fileName, "..") {
+		return errors.New("invalid file path")
+	}
+	
+	return fileName, nil
 }
 
 func CopyFile(sourcePath, destinationPath string) error {
