@@ -81,6 +81,11 @@ func unzipFile(file *zip.File, outputFolderPath string, ignoreSubdirectories, ig
 		return errors.New("invalid file path")
 	}
 
+	// protect against zip slip
+	if strings.Contains(filePath, "..") {
+		return errors.New("invalid file path")
+	}
+
 	fileNameOnly := filepath.Base(filePath)
 
 	if !ignoreSubdirectories {
