@@ -154,9 +154,9 @@ func GetZipName(inputFilePath string) (string, error) {
 	// protect against zip slip
 	fileName := zip.File[0].Name
 	if strings.Contains(fileName, "..") {
-		return errors.New("invalid file path")
+		return "", errors.New("invalid file path")
 	}
-	
+
 	return fileName, nil
 }
 
