@@ -12,7 +12,7 @@ import (
 
 var configAddTokensCmd = &cobra.Command{
 	Use:          "tokens [flags] token(s)",
-	Short:        "Adds session token to config",
+	Short:        "Adds session token(s) to config",
 	SilenceUsage: true,
 	Args:         cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {

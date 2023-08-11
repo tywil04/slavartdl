@@ -12,7 +12,7 @@ import (
 
 var configRemoveTokensCmd = &cobra.Command{
 	Use:          "tokens [flags] tokenIndex(s)",
-	Short:        "Removes session token using index shown by the list command",
+	Short:        "Removes session token(s) using index shown by the list command",
 	SilenceUsage: true,
 	Args:         cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {

@@ -12,6 +12,7 @@ import (
 var configListTokensCmd = &cobra.Command{
 	Use:   "tokens [flags]",
 	Short: "Lists stored session tokens",
+	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
