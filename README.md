@@ -26,10 +26,13 @@ slavartdl version
 slavartdl update                              # updates slavartdl
 slavartdl config add
 slavartdl config add tokens token(s)
+slavartdl config add credential email password
 slavartdl config list
 slavartdl config list tokens
+slavartdl config list credentials
 slavartdl config remove
 slavartdl config remove tokens tokenIndex(s)  # tokenIndex is from the list command
+slavartdl config remove credential credentialIndex(s)
 ```
 
 ### Go installed?

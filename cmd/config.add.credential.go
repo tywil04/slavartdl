@@ -10,7 +10,7 @@ import (
 )
 
 var configAddCredentialCmd = &cobra.Command{
-	Use:          "credential [flags] credential",
+	Use:          "credential [flags] email password",
 	Short:        "Adds credential token to config",
 	SilenceUsage: true,
 	Args:         cobra.ExactArgs(2),
