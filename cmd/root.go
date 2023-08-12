@@ -14,5 +14,8 @@ func init() {
 }
 
 func Execute() error {
+	// hide "completion" command
+	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+
 	return rootCmd.Execute()
 }
