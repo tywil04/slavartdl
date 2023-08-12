@@ -10,11 +10,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/minio/selfupdate"
 	"github.com/tywil04/slavartdl/internal/helpers"
 )
 
@@ -151,11 +151,6 @@ func Update(force bool) (string, error) {
 		return releasesResponse.TagName, fmt.Errorf("downloaded file doesnt match signature")
 	}
 
-	executablePath, err := os.Executable()
-	if err != nil {
-		return releasesResponse.TagName, fmt.Errorf("failed to find path to currently running executable")
-	}
-
 	if extension == "tar.gz" {
 		archive, err := gzip.NewReader(assetBuffer)
 		if err != nil {
@@ -173,21 +168,13 @@ func Update(force bool) (string, error) {
 			}
 
 			if strings.Contains(header.Name, "slavartdl") {
-				if err := os.Remove(executablePath); err != nil {
-					return releasesResponse.TagName, fmt.Errorf("failed to remove currently running executable")
+				if err := selfupdate.Apply(tarball, selfupdate.Options{}); err != nil {
+					if err := selfupdate.RollbackError(err); err != nil {
+						return "", fmt.Errorf("an unknown error has occured while updating")
+					}
 				}
 
-				file, err := os.OpenFile(executablePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-				if err != nil {
-					fmt.Println(err)
-					return releasesResponse.TagName, fmt.Errorf("failed to open currently running executable")
-				}
-				defer file.Close()
-
-				if _, err := io.Copy(file, tarball); err != nil {
-					fmt.Println(err)
-					return releasesResponse.TagName, fmt.Errorf("failed to copy slavartdl from tarball into currently running executable")
-				}
+				break
 			}
 		}
 	} else {
@@ -198,24 +185,16 @@ func Update(force bool) (string, error) {
 
 		for _, zipped := range archive.File {
 			if strings.Contains(zipped.Name, "slavartdl") {
-				if err := os.Remove(executablePath); err != nil {
-					return releasesResponse.TagName, fmt.Errorf("failed to remove currently running executable")
-				}
-
-				file, err := os.OpenFile(executablePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-				if err != nil {
-					return releasesResponse.TagName, fmt.Errorf("failed to open currently running executable")
-				}
-				defer file.Close()
-
 				zipFile, err := zipped.Open()
 				if err != nil {
 					return releasesResponse.TagName, fmt.Errorf("failed to open file in zip archive")
 				}
 				defer zipFile.Close()
 
-				if _, err := io.Copy(file, zipFile); err != nil {
-					return releasesResponse.TagName, fmt.Errorf("failed to copy slavartdl from zip into currently running archive")
+				if err := selfupdate.Apply(zipFile, selfupdate.Options{}); err != nil {
+					if err := selfupdate.RollbackError(err); err != nil {
+						return "", fmt.Errorf("an unknown error has occured while updating")
+					}
 				}
 
 				break
