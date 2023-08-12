@@ -172,7 +172,7 @@ func Update(force bool) (string, error) {
 				continue
 			}
 
-			if header.Name == "slavartdl" {
+			if strings.Contains(header.Name, "slavartdl") {
 				if err := os.Remove(executablePath); err != nil {
 					return releasesResponse.TagName, fmt.Errorf("failed to remove currently running executable")
 				}
@@ -197,7 +197,7 @@ func Update(force bool) (string, error) {
 		}
 
 		for _, zipped := range archive.File {
-			if zipped.Name == "slavartdl" {
+			if strings.Contains(zipped.Name, "slavartdl") {
 				if err := os.Remove(executablePath); err != nil {
 					return releasesResponse.TagName, fmt.Errorf("failed to remove currently running executable")
 				}
