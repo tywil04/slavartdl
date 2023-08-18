@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -28,6 +29,11 @@ var updateCmd = &cobra.Command{
 
 		if version != "" {
 			fmt.Printf("Successfully updated to version %s!\n", version)
+
+			// new timeout structure added to this version
+			if strings.EqualFold(version, "v1.1.11") {
+				fmt.Println("Please note, if you previously have modified 'downloadcmd.timeout.seconds' or 'downloadcmd.timeout.minutes' then your config will no longer work. 'downloadcmd.timeout.minutes' and its related flag '--timeoutMinutes' has been removed. 'downloadcmd.timeout.seconds' has been renamed to 'downloadcmd.timeout' and the related flag '--timeoutSeconds' has been replaced with '--timeout'. Having the support for adding additional seconds and minutes to the download commands timeout was redundant, now timeout is seconds only.")
+			}
 		} else {
 			fmt.Println("All up to date, no updated required!")
 		}
