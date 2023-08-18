@@ -15,15 +15,12 @@ var ConfigName string
 var ConfigFile string
 
 var DefaultStructure = map[string]any{
-	"divoltsessiontokens":    []string{},
+	"divoltsessiontokens":    []any{},
 	"divoltlogincredentials": []map[string]any{},
 	"downloadcmd": map[string]any{
 		"outputdir": "",
 		"quality":   0,
-		"timeout": map[string]any{
-			"seconds": 0,
-			"minutes": 2,
-		},
+		"timeout":   120,
 		"ignore": map[string]any{
 			"cover":   false,
 			"subdirs": false,
@@ -111,11 +108,32 @@ func Offload() error {
 	return viper.WriteConfigAs(ConfigFile)
 }
 
+func updateInterfaceToAny(key string, defaultMap map[string]any, newValue any) {
+	value := viper.GetStringMap(key)
+	if fmt.Sprint(value) == fmt.Sprint(defaultMap) {
+		viper.Set(key, newValue)
+	}
+}
+
+func updateTimeoutStructure() {
+	// update old timeout structure to new structure
+	timeoutOld := map[string]any{
+		"seconds": 0,
+		"minutes": 2,
+	}
+	timeoutNew := DefaultStructure["downloadcmd"].(map[string]any)["timeout"].(int)
+	updateInterfaceToAny("downloadcmd.timeout", timeoutOld, timeoutNew)
+}
+
 func UpdateStructure() {
 	for key, value := range DefaultStructure {
 		if !viper.IsSet(key) {
 			viper.Set(key, value)
 		}
 	}
+
+	// manual updates
+	updateTimeoutStructure()
+
 	Offload()
 }

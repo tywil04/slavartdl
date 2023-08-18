@@ -96,26 +96,16 @@ var downloadCmd = &cobra.Command{
 		quality -= 1
 
 		// optional
-		timeoutSeconds, err := flags.GetInt("timeoutSeconds")
+		timeout, err := flags.GetInt("timeout")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--timeoutSeconds'")
+			return fmt.Errorf("unknown error when getting '--timeout'")
 		}
 
-		if timeoutSeconds == 0 {
-			timeoutSeconds = viper.GetInt("downloadcmd.timeout.seconds")
+		if timeout == 0 {
+			timeout = viper.GetInt("downloadcmd.timeout")
 		}
 
-		// optional
-		timeoutMinutes, err := flags.GetInt("timeoutMinutes")
-		if err != nil {
-			return fmt.Errorf("unknown error when getting '--timeoutMinutes'")
-		}
-
-		if timeoutMinutes == 0 {
-			timeoutMinutes = viper.GetInt("downloadcmd.timeout.minutes")
-		}
-
-		if timeoutSeconds == 0 && timeoutMinutes == 0 {
+		if timeout == 0 {
 			return fmt.Errorf("total timeout is 0, unable to continue")
 		}
 
@@ -149,9 +139,7 @@ var downloadCmd = &cobra.Command{
 			skipUnzip = viper.GetBool("downloadcmd.skip.unzip")
 		}
 
-		timeoutTime := time.Now().
-			Add(time.Minute * time.Duration(timeoutMinutes)).
-			Add(time.Second * time.Duration(timeoutSeconds))
+		timeoutTime := time.Now().Add(time.Second * time.Duration(timeout))
 
 		for _, link := range args {
 			// randomly select a session token to avoid using the same account all the time
@@ -263,8 +251,7 @@ func init() {
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
 	flags.IntP("quality", "q", 0, "the quality of music to download\n- 0: best quality available\n- 1: 128kbps MP3/AAC\n- 2: 320kbps MP3/AAC\n- 3: 16bit 44.1kHz\n- 4: 24bit ≤96kHz\n- 5: 24bit ≤192kHz")
-	flags.IntP("timeoutSeconds", "s", 0, "how long before link search is timed out in seconds\n[combines with --timeoutMinutes]")
-	flags.IntP("timeoutMinutes", "m", 0, "how long before link search is timed out in minutes\n[combines with --timeoutSeconds]")
+	flags.IntP("timeout", "t", 0, "how long before link search is timed out in seconds")
 
 	flags.BoolP("ignoreCover", "c", false, "ignore cover.jpg when unzipping downloaded music")
 	flags.BoolP("ignoreSubdirs", "d", false, "ignore subdirectories when unzipping downloaded music")
