@@ -70,7 +70,8 @@ As a note, the structure of "downloadcmd.timeout" has changed, its now an int vs
     },
     "outputdir": string,
     "quality": int,
-    "timeout": int
+    "timeout": int,
+    "cooldown": int
   }
 }
 ```

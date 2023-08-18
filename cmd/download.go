@@ -110,6 +110,16 @@ var downloadCmd = &cobra.Command{
 		}
 
 		// optional
+		cooldown, err := flags.GetInt("cooldown")
+		if err != nil {
+			return fmt.Errorf("unknown error when getting '--cooldown'")
+		}
+
+		if cooldown == 0 {
+			cooldown = viper.GetInt("downloadcmd.cooldown")
+		}
+
+		// optional
 		ignoreCover, err := flags.GetBool("ignoreCover")
 		if err != nil {
 			return fmt.Errorf("unknown error when getting '--ignoreCover'")
@@ -140,6 +150,7 @@ var downloadCmd = &cobra.Command{
 		}
 
 		timeoutTime := time.Now().Add(time.Second * time.Duration(timeout))
+		cooldownDuration := time.Second * time.Duration(cooldown)
 
 		for _, link := range args {
 			// randomly select a session token to avoid using the same account all the time
@@ -236,6 +247,10 @@ var downloadCmd = &cobra.Command{
 			}
 
 			fmt.Println("\nDone!")
+
+			if link != args[len(args)-1] {
+				time.Sleep(cooldownDuration)
+			}
 		}
 
 		return nil
@@ -252,6 +267,7 @@ func init() {
 
 	flags.IntP("quality", "q", 0, "the quality of music to download\n- 0: best quality available\n- 1: 128kbps MP3/AAC\n- 2: 320kbps MP3/AAC\n- 3: 16bit 44.1kHz\n- 4: 24bit ≤96kHz\n- 5: 24bit ≤192kHz")
 	flags.IntP("timeout", "t", 0, "how long before link search is timed out in seconds")
+	flags.Int("cooldown", 0, "how long to wait after downloading first url in seconds\n(only matters if you are downloading multiple urls at once)")
 
 	flags.BoolP("ignoreCover", "c", false, "ignore cover.jpg when unzipping downloaded music")
 	flags.BoolP("ignoreSubdirs", "d", false, "ignore subdirectories when unzipping downloaded music")

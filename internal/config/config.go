@@ -21,6 +21,7 @@ var DefaultStructure = map[string]any{
 		"outputdir": "",
 		"quality":   0,
 		"timeout":   120,
+		"cooldown": 0,
 		"ignore": map[string]any{
 			"cover":   false,
 			"subdirs": false,
