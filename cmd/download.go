@@ -21,7 +21,7 @@ var downloadCmd = &cobra.Command{
 	Use:          "download [flags] url(s)",
 	Short:        "Download music from url using SlavArt Divolt server",
 	Long:         "Download music from url using SlavArt Divolt server (Supports: Tidal, Qobuz, SoundCloud, Deezer, Spotify, YouTube and Jiosaavn)",
-	Args:         cobra.MinimumNArgs(1),
+	Args:         cobra.ArbitraryArgs,
 	SilenceUsage: true,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		for _, arg := range args {
@@ -80,6 +80,17 @@ var downloadCmd = &cobra.Command{
 		outputDir, err := filepath.Abs(outputDirRel)
 		if err != nil {
 			return fmt.Errorf("failed to resolve relative 'outputDir' into absolute path")
+		}
+
+		// optional
+		fromFileRel, err := flags.GetString("fromFile")
+		if err != nil {
+			return fmt.Errorf("unknown error when getting '--fromFile'")
+		}
+
+		fromFile, err := filepath.Abs(fromFileRel)
+		if err != nil {
+			return fmt.Errorf("failed to resolve relative 'fromFile' into absolute path")
 		}
 
 		// optional
@@ -151,6 +162,20 @@ var downloadCmd = &cobra.Command{
 
 		timeoutTime := time.Now().Add(time.Second * time.Duration(timeout))
 		cooldownDuration := time.Second * time.Duration(cooldown)
+
+		if fromFile != "" {
+			// if a file is provided, add the urls to the list to be processed
+			urls, err := helpers.GetUrlsFromFile(fromFile)
+			if err != nil {
+				return fmt.Errorf("failed to read urls from file")
+			}
+			args = append(args, urls...)
+		}
+
+		// this is now required because args dont have to be passed just via the cli anymore
+		if len(args) == 0 {
+			return fmt.Errorf("no urls to download")
+		}
 
 		for _, link := range args {
 			// randomly select a session token to avoid using the same account all the time
@@ -261,7 +286,9 @@ func init() {
 	flags := downloadCmd.Flags()
 
 	flags.StringP("outputDir", "o", "", "the output directory to store the downloaded music")
+	flags.StringP("fromFile", "f", "", "the path to a text file to read urls from, urls must be seperated by a newline")
 	downloadCmd.MarkFlagDirname("outputDir")
+	downloadCmd.MarkFlagDirname("fromFile")
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
