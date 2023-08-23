@@ -94,6 +94,12 @@ var downloadCmd = &cobra.Command{
 		}
 
 		// optional
+		fromStdin, err := flags.GetBool("fromStdin")
+		if err != nil {
+			return fmt.Errorf("unknown error when getting '--fromStdin'")
+		}
+
+		// optional
 		quality, err := flags.GetInt("quality")
 		if err != nil {
 			return fmt.Errorf("unknown error when getting '--quality'")
@@ -168,6 +174,15 @@ var downloadCmd = &cobra.Command{
 			urls, err := helpers.GetUrlsFromFile(fromFile)
 			if err != nil {
 				return fmt.Errorf("failed to read urls from file")
+			}
+			args = append(args, urls...)
+		}
+
+		if fromStdin {
+			// if told to read from stdin
+			urls, err := helpers.GetUrlsFromStdin()
+			if err != nil {
+				return fmt.Errorf("failed to read urls from stdin")
 			}
 			args = append(args, urls...)
 		}
@@ -289,6 +304,8 @@ func init() {
 	flags.StringP("fromFile", "f", "", "the path to a text file to read urls from, urls must be seperated by a newline")
 	downloadCmd.MarkFlagDirname("outputDir")
 	downloadCmd.MarkFlagDirname("fromFile")
+
+	flags.BoolP("fromStdin", "s", false, "should urls be read from standard input, urls must be seperated by a newline")
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
