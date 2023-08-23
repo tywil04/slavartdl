@@ -179,3 +179,22 @@ func CopyFile(sourcePath, destinationPath string) error {
 
 	return nil
 }
+
+func GetUrlsFromFile(sourcePath string) ([]string, error) {
+	contents, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return nil, err
+	}
+
+	rawUrls := strings.Split(string(contents), "\n")
+	urls := []string{}
+
+	for _, url := range rawUrls {
+		trimmed := strings.TrimSpace(url)
+		if trimmed != "" {
+			urls = append(urls, trimmed)
+		}
+	}
+
+	return urls, nil
+}
