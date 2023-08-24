@@ -83,14 +83,9 @@ var downloadCmd = &cobra.Command{
 		}
 
 		// optional
-		fromFileRel, err := flags.GetString("fromFile")
+		fromFile, err := flags.GetString("fromFile")
 		if err != nil {
 			return fmt.Errorf("unknown error when getting '--fromFile'")
-		}
-
-		fromFile, err := filepath.Abs(fromFileRel)
-		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'fromFile' into absolute path")
 		}
 
 		// optional
