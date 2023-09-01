@@ -225,6 +225,11 @@ func GetDownloadLinkFromSlavart(sessionToken, link string, quality int, timeoutT
 			return "", err
 		}
 
+		// check for later errors
+		if errMessage, errorFound := CheckForErrorMessageInRequestMessages(requestMessageId, messages); errorFound {
+			return "", errors.New(errMessage)
+		}
+
 		if downloadLink, ok := SearchForDownloadLinkInUploadMessages(link, messages); ok {
 			return downloadLink, nil
 		}
