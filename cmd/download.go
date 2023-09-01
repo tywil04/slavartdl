@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/url"
 	"os"
@@ -45,59 +46,94 @@ var downloadCmd = &cobra.Command{
 
 		return nil
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		flags := cmd.Flags()
 
 		// optional
 		configPathRel, err := flags.GetString("configPath")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--configPath'")
+			log.Fatal("unknown error when getting '--configPath'")
 		}
 
 		configPath, err := filepath.Abs(configPathRel)
 		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'configPath' into absolute path")
+			log.Fatal("failed to resolve relative 'configPath' into absolute path")
 		}
 
 		// load config
 		if err := config.Load(configPathRel == "", configPath); err != nil {
-			return err
+			log.Fatal(err)
+		}
+
+		// optional
+		logLevel, err := flags.GetString("logLevel")
+		if err != nil {
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--logLevel'")
+			}
+		}
+
+		if logLevel == "" {
+			logLevel = viper.GetString("downloadcmd.loglevel")
+		}
+
+		if logLevel == "" {
+			// set default
+			logLevel = "all"
+		}
+
+		if logLevel != "all" && logLevel != "errors" && logLevel != "silent" {
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("'--logLevel' should be one of 'all', 'errors' or 'silent'")
+			}
 		}
 
 		// required
 		outputDirRel, err := flags.GetString("outputDir")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--outputDir'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--outputDir'")
+			}
 		}
 
 		if outputDirRel == "" {
 			outputDirRel = viper.GetString("downloadcmd.outputdir")
 			if outputDirRel == "" {
-				return fmt.Errorf("no outputDir provided in config or '--outputDir'")
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal("no outputDir provided in config or '--outputDir'")
+				}
 			}
 		}
 
 		outputDir, err := filepath.Abs(outputDirRel)
 		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'outputDir' into absolute path")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("failed to resolve relative 'outputDir' into absolute path")
+			}
 		}
 
 		// optional
 		fromFile, err := flags.GetString("fromFile")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--fromFile'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--fromFile'")
+			}
 		}
 
 		// optional
 		fromStdin, err := flags.GetBool("fromStdin")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--fromStdin'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--fromStdin'")
+			}
 		}
 
 		// optional
 		quality, err := flags.GetInt("quality")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--quality'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--quality'")
+			}
 		}
 
 		if quality == 0 {
@@ -110,7 +146,9 @@ var downloadCmd = &cobra.Command{
 		// optional
 		timeout, err := flags.GetInt("timeout")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--timeout'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--timeout'")
+			}
 		}
 
 		if timeout == 0 {
@@ -118,13 +156,17 @@ var downloadCmd = &cobra.Command{
 		}
 
 		if timeout == 0 {
-			return fmt.Errorf("total timeout is 0, unable to continue")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("total timeout is 0, unable to continue")
+			}
 		}
 
 		// optional
 		cooldown, err := flags.GetInt("cooldown")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--cooldown'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--cooldown'")
+			}
 		}
 
 		if cooldown == 0 {
@@ -134,7 +176,9 @@ var downloadCmd = &cobra.Command{
 		// optional
 		ignoreCover, err := flags.GetBool("ignoreCover")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--ignoreCover'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--ignoreCover'")
+			}
 		}
 
 		if !ignoreCover {
@@ -144,7 +188,9 @@ var downloadCmd = &cobra.Command{
 		// optional
 		ignoreSubdirs, err := flags.GetBool("ignoreSubdirs")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--ignoreSubdirs'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--ignoreSubdirs'")
+			}
 		}
 
 		if !ignoreSubdirs {
@@ -154,7 +200,9 @@ var downloadCmd = &cobra.Command{
 		// optional
 		skipUnzip, err := flags.GetBool("skipUnzip")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--skipUnzip'")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("unknown error when getting '--skipUnzip'")
+			}
 		}
 
 		if !skipUnzip {
@@ -168,7 +216,9 @@ var downloadCmd = &cobra.Command{
 			// if a file is provided, add the urls to the list to be processed
 			urls, err := helpers.GetUrlsFromFile(fromFile)
 			if err != nil {
-				return fmt.Errorf("failed to read urls from file")
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal("failed to read urls from file")
+				}
 			}
 			args = append(args, urls...)
 		}
@@ -177,14 +227,18 @@ var downloadCmd = &cobra.Command{
 			// if told to read from stdin
 			urls, err := helpers.GetUrlsFromStdin()
 			if err != nil {
-				return fmt.Errorf("failed to read urls from stdin")
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal("failed to read urls from stdin")
+				}
 			}
 			args = append(args, urls...)
 		}
 
 		// this is now required because args dont have to be passed just via the cli anymore
 		if len(args) == 0 {
-			return fmt.Errorf("no urls to download")
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("no urls to download")
+			}
 		}
 
 		for _, link := range args {
@@ -233,62 +287,83 @@ var downloadCmd = &cobra.Command{
 
 			length := len(sessionTokens)
 			if length == 0 {
-				return fmt.Errorf("no session tokens found in config")
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal("no session tokens found in config")
+				}
 			} else if length == 1 {
 				sessionToken = sessionTokens[0]
 			} else {
 				sessionToken = sessionTokens[rand.Intn(length)]
 			}
 
-			fmt.Println("Getting download link...")
+			if logLevel == "all" {
+				fmt.Println("Getting download link...")
+			}
 			downloadLink, err := slavart.GetDownloadLinkFromSlavart(sessionToken, link, quality, timeoutTime)
 			if err != nil {
-				return err
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal(err)
+				}
 			}
 
-			fmt.Println("\nDownloading zip...")
+			if logLevel == "all" {
+				fmt.Println("\nDownloading zip...")
+			}
 			// this will create a temp file in the default location
 			tempFile, err := os.CreateTemp("", "slavartdl.*.zip")
 			if err != nil {
-				return err
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal(err)
+				}
 			}
 			defer os.Remove(tempFile.Name())
 
 			tempFilePath := tempFile.Name()
-			err = helpers.DownloadFile(downloadLink, tempFilePath)
+			err = helpers.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
 			if err != nil {
-				return err
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal(err)
+				}
 			}
 
 			if !skipUnzip {
-				fmt.Println("\nUnzipping...")
-				if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover); err != nil {
-					return err
+				if logLevel == "all" {
+					fmt.Println("\nUnzipping...")
+				}
+				if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
+					if logLevel == "all" || logLevel == "errors" {
+						log.Fatal(err)
+					}
 				}
 			} else {
 				zipName, err := helpers.GetZipName(tempFilePath)
 				if err != nil {
-					return err
+					if logLevel == "all" || logLevel == "errors" {
+						log.Fatal(err)
+					}
 				}
 
-				fmt.Println(filepath.Clean(zipName))
-
+				if logLevel == "all" {
+					fmt.Println(filepath.Clean(zipName))
+				}
 				outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
 				// temp file gets deleted later
 				if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
-					return nil
+					if logLevel == "all" || logLevel == "errors" {
+						log.Fatal(err)
+					}
 				}
 
 			}
 
-			fmt.Println("\nDone!")
+			if logLevel == "all" {
+				fmt.Println("\nDone!")
+			}
 
 			if link != args[len(args)-1] {
 				time.Sleep(cooldownDuration)
 			}
 		}
-
-		return nil
 	},
 }
 
@@ -304,6 +379,7 @@ func init() {
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
+	flags.StringP("logLevel", "l", "", "what level of logs should be outputted to standard output\n(errors in regard with config file will always be reported)\n- all: everything gets logged\n- errors: only errors get logged\n- silent: nothing gets logged")
 	flags.IntP("quality", "q", 0, "the quality of music to download\n- 0: best quality available\n- 1: 128kbps MP3/AAC\n- 2: 320kbps MP3/AAC\n- 3: 16bit 44.1kHz\n- 4: 24bit ≤96kHz\n- 5: 24bit ≤192kHz")
 	flags.IntP("timeout", "t", 0, "how long before link search is timed out in seconds")
 	flags.Int("cooldown", 0, "how long to wait after downloading first url in seconds\n(only matters if you are downloading multiple urls at once)")

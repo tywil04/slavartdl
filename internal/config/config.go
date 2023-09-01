@@ -19,9 +19,10 @@ var DefaultStructure = map[string]any{
 	"divoltlogincredentials": []map[string]any{},
 	"downloadcmd": map[string]any{
 		"outputdir": "",
+		"loglevel":  "all",
 		"quality":   0,
 		"timeout":   120,
-		"cooldown": 0,
+		"cooldown":  0,
 		"ignore": map[string]any{
 			"cover":   false,
 			"subdirs": false,

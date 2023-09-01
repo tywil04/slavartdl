@@ -48,7 +48,7 @@ Session tokens are stored in a local config file (use the `config` command to fi
 You can have multiple session tokens that will randomly get used per request.
 
 ### Structure
-As a note, the structure of "downloadcmd.timeout" has changed, its now an int vs a map containing seconds and minutes. This is because the timeout flag has also changed to only be seconds. The additional minutes flag/config value was redundant so it was removed.
+As a note, the structure of `"downloadcmd.timeout"`` has changed, its now an int vs a map containing seconds and minutes. This is because the timeout flag has also changed to only be seconds. The additional minutes flag/config value was redundant so it was removed. Please note, `"downloadcmd.outputdir"` must be an absolute file path, not relative.
 
 ```
 {
@@ -69,6 +69,7 @@ As a note, the structure of "downloadcmd.timeout" has changed, its now an int vs
       "subdirs": bool
     },
     "outputdir": string,
+    "loglevel": string,
     "quality": int,
     "timeout": int,
     "cooldown": int
