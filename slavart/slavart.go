@@ -242,12 +242,48 @@ func GetDownloadLinkFromSlavart(sessionToken, link string, quality int, timeoutT
 }
 
 // The whole download routine
-func Download(urls []string, sessionToken, logLevel string, quality int, timeoutTime time.Time, cooldownDuration time.Duration, outputDir string, skipUnzip, ignoreCover, ignoreSubdirs bool) {
-	for _, link := range urls {
-		if logLevel == "all" {
-			fmt.Println("Getting download link...")
+func DownloadUrl(url, sessionToken, logLevel string, quality int, timeoutTime time.Time, cooldownDuration time.Duration, outputDir string, skipUnzip, ignoreCover, ignoreSubdirs bool) {
+	if logLevel == "all" {
+		fmt.Println("Getting download link...")
+	}
+	downloadLink, err := GetDownloadLinkFromSlavart(sessionToken, url, quality, timeoutTime)
+	if err != nil {
+		if logLevel == "all" || logLevel == "errors" {
+			log.Fatal(err)
 		}
-		downloadLink, err := GetDownloadLinkFromSlavart(sessionToken, link, quality, timeoutTime)
+	}
+
+	if logLevel == "all" {
+		fmt.Println("\nDownloading zip...")
+	}
+	// this will create a temp file in the default location
+	tempFile, err := os.CreateTemp("", "slavartdl.*.zip")
+	if err != nil {
+		if logLevel == "all" || logLevel == "errors" {
+			log.Fatal(err)
+		}
+	}
+	defer os.Remove(tempFile.Name())
+
+	tempFilePath := tempFile.Name()
+	err = helpers.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
+	if err != nil {
+		if logLevel == "all" || logLevel == "errors" {
+			log.Fatal(err)
+		}
+	}
+
+	if !skipUnzip {
+		if logLevel == "all" {
+			fmt.Println("\nUnzipping...")
+		}
+		if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal(err)
+			}
+		}
+	} else {
+		zipName, err := helpers.GetZipName(tempFilePath)
 		if err != nil {
 			if logLevel == "all" || logLevel == "errors" {
 				log.Fatal(err)
@@ -255,61 +291,19 @@ func Download(urls []string, sessionToken, logLevel string, quality int, timeout
 		}
 
 		if logLevel == "all" {
-			fmt.Println("\nDownloading zip...")
+			fmt.Println(filepath.Clean(zipName))
 		}
-		// this will create a temp file in the default location
-		tempFile, err := os.CreateTemp("", "slavartdl.*.zip")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal(err)
-			}
-		}
-		defer os.Remove(tempFile.Name())
-
-		tempFilePath := tempFile.Name()
-		err = helpers.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
-		if err != nil {
+		outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
+		// temp file gets deleted later
+		if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
 			if logLevel == "all" || logLevel == "errors" {
 				log.Fatal(err)
 			}
 		}
 
-		if !skipUnzip {
-			if logLevel == "all" {
-				fmt.Println("\nUnzipping...")
-			}
-			if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal(err)
-				}
-			}
-		} else {
-			zipName, err := helpers.GetZipName(tempFilePath)
-			if err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal(err)
-				}
-			}
+	}
 
-			if logLevel == "all" {
-				fmt.Println(filepath.Clean(zipName))
-			}
-			outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
-			// temp file gets deleted later
-			if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal(err)
-				}
-			}
-
-		}
-
-		if logLevel == "all" {
-			fmt.Println("\nDone!")
-		}
-
-		if link != urls[len(urls)-1] {
-			time.Sleep(cooldownDuration)
-		}
+	if logLevel == "all" {
+		fmt.Println("\nDone!")
 	}
 }
