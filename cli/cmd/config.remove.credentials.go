@@ -3,16 +3,18 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tywil04/slavartdl/internal/config"
+	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configListCredentialsCmd = &cobra.Command{
-	Use:   "credentials [flags]",
-	Short: "Lists stored credentials",
-	Args:  cobra.ExactArgs(0),
+var configRemoveCredentialsCmd = &cobra.Command{
+	Use:          "credentials [flags] credentialIndex(s)",
+	Short:        "Removes credential(s) using index shown by the list command",
+	SilenceUsage: true,
+	Args:         cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
@@ -36,26 +38,35 @@ var configListCredentialsCmd = &cobra.Command{
 
 		credentialsSlice, ok := credentials.([]any)
 		if ok {
-			for index, slice := range credentialsSlice {
-				sliceMap, ok := slice.(map[string]any)
-				if ok {
-					fmt.Printf("[%d]: Email = %s, Password = %s\n", index, sliceMap["email"], sliceMap["password"])
-				} else {
-					return fmt.Errorf("an unknown error has occured")
+			for index := range credentialsSlice {
+				for _, arg := range args {
+					argNumber, err := strconv.Atoi(arg)
+					if err == nil && argNumber == index {
+						credentialsSlice[index] = "<DELETED>"
+					}
 				}
 			}
 		} else {
 			return fmt.Errorf("an unknown error has occured")
 		}
 
-		return nil
+		resultingCredentials := []any{}
+		for _, token := range credentialsSlice {
+			if token != "<DELETED>" {
+				resultingCredentials = append(resultingCredentials, token)
+			}
+		}
+
+		viper.Set("divoltlogincredentials", resultingCredentials)
+
+		return config.Offload()
 	},
 }
 
 func init() {
-	flags := configListCredentialsCmd.Flags()
+	flags := configRemoveCredentialsCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configListCmd.AddCommand(configListCredentialsCmd)
+	configRemoveCmd.AddCommand(configRemoveCredentialsCmd)
 }

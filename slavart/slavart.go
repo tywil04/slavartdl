@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tywil04/slavartdl/helpers"
+	"github.com/tywil04/slavartdl/common"
 )
 
 const (
@@ -54,7 +54,7 @@ func GetBotOnlineStatus(sessionToken string) (bool, error) {
 		Online bool `json:"online"`
 	}{}
 
-	err := jsonApiRequest(
+	err := common.JsonApiRequest(
 		http.MethodGet,
 		Api+"/users/"+SlavartBotId,
 		&serverMemberResponse,
@@ -78,7 +78,7 @@ func SendDownloadMessage(sessionToken, link string, quality int) (string, error)
 		content += " " + strconv.Itoa(quality)
 	}
 
-	err := helpers.JsonApiRequest(
+	err := common.JsonApiRequest(
 		http.MethodPost,
 		Api+"/channels/"+RequestChannel+"/messages",
 		&downloadRequestResponse,
@@ -97,7 +97,7 @@ func SendDownloadMessage(sessionToken, link string, quality int) (string, error)
 func GetUploadMessages(sessionToken string) ([]RevoltMessage, error) {
 	downloadRequestFinishedTestResponse := []RevoltMessage{}
 
-	err := helpers.JsonApiRequest(
+	err := common.JsonApiRequest(
 		http.MethodGet,
 		Api+"/channels/"+UploadChannel+"/messages",
 		&downloadRequestFinishedTestResponse,
@@ -117,7 +117,7 @@ func GetUploadMessages(sessionToken string) ([]RevoltMessage, error) {
 func GetRequestMessages(sessionToken string) ([]RevoltMessage, error) {
 	downloadRequestFinishedTestResponse := []RevoltMessage{}
 
-	err := helpers.JsonApiRequest(
+	err := common.JsonApiRequest(
 		http.MethodGet,
 		Api+"/channels/"+RequestChannel+"/messages",
 		&downloadRequestFinishedTestResponse,
@@ -139,7 +139,7 @@ func GetSessionTokenFromCredentials(email, password string) (string, error) {
 		Token string `json:"token"`
 	}{}
 
-	err := helpers.JsonApiRequest(
+	err := common.JsonApiRequest(
 		http.MethodPost,
 		Api+"/auth/session/login",
 		&loginResponse,
@@ -266,7 +266,7 @@ func Download(urls []string, sessionToken, logLevel string, quality int, timeout
 		defer os.Remove(tempFile.Name())
 
 		tempFilePath := tempFile.Name()
-		err = helpers.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
+		err = common.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
 		if err != nil {
 			if logLevel == "all" || logLevel == "errors" {
 				log.Fatal(err)
@@ -277,13 +277,13 @@ func Download(urls []string, sessionToken, logLevel string, quality int, timeout
 			if logLevel == "all" {
 				fmt.Println("\nUnzipping...")
 			}
-			if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
+			if err := common.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal(err)
 				}
 			}
 		} else {
-			zipName, err := helpers.GetZipName(tempFilePath)
+			zipName, err := common.GetZipName(tempFilePath)
 			if err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal(err)
@@ -295,7 +295,7 @@ func Download(urls []string, sessionToken, logLevel string, quality int, timeout
 			}
 			outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
 			// temp file gets deleted later
-			if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
+			if err := common.CopyFile(tempFilePath, outputFileDir); err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal(err)
 				}

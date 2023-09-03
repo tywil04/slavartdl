@@ -1,4 +1,4 @@
-module github.com/tywil04/slavartdl/slavartdl
+module github.com/tywil04/slavartdl
 
 go 1.19
 

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/tywil04/slavartdl/slavartdl/cmd"
+	"github.com/tywil04/slavartdl/cli/cmd"
 )
 
 func main() {

@@ -6,13 +6,15 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tywil04/slavartdl/internal/config"
+
+	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configListTokensCmd = &cobra.Command{
-	Use:   "tokens [flags]",
-	Short: "Lists stored session tokens",
-	Args:  cobra.ExactArgs(0),
+var configAddCredentialCmd = &cobra.Command{
+	Use:          "credential [flags] email password",
+	Short:        "Adds credential token to config",
+	SilenceUsage: true,
+	Args:         cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
@@ -32,20 +34,32 @@ var configListTokensCmd = &cobra.Command{
 			return err
 		}
 
-		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-
-		for index, token := range sessionTokens {
-			fmt.Printf("[%d]: %s\n", index, token)
+		if len(args) != 2 {
+			return fmt.Errorf("not enough arguments provided")
 		}
 
-		return nil
+		credentials := viper.Get("divoltlogincredentials")
+
+		credentialsSlice, ok := credentials.([]any)
+		if ok {
+			credentialsSlice = append(credentialsSlice, map[string]string{
+				"email":    args[0],
+				"password": args[1],
+			})
+		} else {
+			return fmt.Errorf("an unknown error has occured")
+		}
+
+		viper.Set("divoltlogincredentials", credentialsSlice)
+
+		return config.Offload()
 	},
 }
 
 func init() {
-	flags := configListTokensCmd.Flags()
+	flags := configAddCredentialCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configListCmd.AddCommand(configListTokensCmd)
+	configAddCmd.AddCommand(configAddCredentialCmd)
 }

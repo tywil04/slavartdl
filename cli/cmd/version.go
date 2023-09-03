@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tywil04/slavartdl/slavartdl/internal/update"
+	"github.com/tywil04/slavartdl/cli/internal/update"
 )
 
 var versionCmd = &cobra.Command{

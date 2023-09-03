@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/minio/selfupdate"
-	"github.com/tywil04/slavartdl/helpers"
+	"github.com/tywil04/slavartdl/common"
 )
 
 const Version = "v1.1.11"
@@ -61,7 +61,7 @@ func Update(force bool) (string, error) {
 		} `json:"assets"`
 	}{}
 
-	err := helpers.JsonApiRequest(
+	err := common.JsonApiRequest(
 		http.MethodGet,
 		"https://api.github.com/repos/tywil04/slavartdl/releases/latest",
 		&releasesResponse,

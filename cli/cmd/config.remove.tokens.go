@@ -7,12 +7,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tywil04/slavartdl/internal/config"
+	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configRemoveCredentialsCmd = &cobra.Command{
-	Use:          "credentials [flags] credentialIndex(s)",
-	Short:        "Removes credential(s) using index shown by the list command",
+var configRemoveTokensCmd = &cobra.Command{
+	Use:          "tokens [flags] tokenIndex(s)",
+	Short:        "Removes session token(s) using index shown by the list command",
 	SilenceUsage: true,
 	Args:         cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -34,39 +34,34 @@ var configRemoveCredentialsCmd = &cobra.Command{
 			return err
 		}
 
-		credentials := viper.Get("divoltlogincredentials")
+		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
 
-		credentialsSlice, ok := credentials.([]any)
-		if ok {
-			for index := range credentialsSlice {
-				for _, arg := range args {
-					argNumber, err := strconv.Atoi(arg)
-					if err == nil && argNumber == index {
-						credentialsSlice[index] = "<DELETED>"
-					}
+		for index := range sessionTokens {
+			for _, arg := range args {
+				argNumber, err := strconv.Atoi(arg)
+				if err == nil && argNumber == index {
+					sessionTokens[index] = "<DELETED>"
 				}
 			}
-		} else {
-			return fmt.Errorf("an unknown error has occured")
 		}
 
-		resultingCredentials := []any{}
-		for _, token := range credentialsSlice {
+		resultingSessionTokens := []string{}
+		for _, token := range sessionTokens {
 			if token != "<DELETED>" {
-				resultingCredentials = append(resultingCredentials, token)
+				resultingSessionTokens = append(resultingSessionTokens, token)
 			}
 		}
 
-		viper.Set("divoltlogincredentials", resultingCredentials)
+		viper.Set("divoltsessiontokens", resultingSessionTokens)
 
 		return config.Offload()
 	},
 }
 
 func init() {
-	flags := configRemoveCredentialsCmd.Flags()
+	flags := configRemoveTokensCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configRemoveCmd.AddCommand(configRemoveCredentialsCmd)
+	configRemoveCmd.AddCommand(configRemoveTokensCmd)
 }

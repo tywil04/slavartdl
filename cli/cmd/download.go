@@ -11,9 +11,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/tywil04/slavartdl/helpers"
-	"github.com/tywil04/slavartdl/internal/config"
-	"github.com/tywil04/slavartdl/slavartlib"
+	"github.com/tywil04/slavartdl/common"
+	"github.com/tywil04/slavartdl/slavart"
+
+	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
 var downloadCmd = &cobra.Command{
@@ -30,7 +31,7 @@ var downloadCmd = &cobra.Command{
 			}
 
 			allowed := false
-			for _, host := range slavartlib.AllowedHosts {
+			for _, host := range slavart.AllowedHosts {
 				if host == parsedUrl.Host {
 					allowed = true
 					break
@@ -212,7 +213,7 @@ var downloadCmd = &cobra.Command{
 
 		if fromFile != "" {
 			// if a file is provided, add the urls to the list to be processed
-			urls, err := helpers.GetUrlsFromFile(fromFile)
+			urls, err := common.GetUrlsFromFile(fromFile)
 			if err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal("failed to read urls from file")
@@ -223,7 +224,7 @@ var downloadCmd = &cobra.Command{
 
 		if fromStdin {
 			// if told to read from stdin
-			urls, err := helpers.GetUrlsFromStdin()
+			urls, err := common.GetUrlsFromStdin()
 			if err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal("failed to read urls from stdin")
@@ -273,7 +274,7 @@ var downloadCmd = &cobra.Command{
 					continue
 				}
 
-				token, err := slavartlib.GetSessionTokenFromCredentials(email, password)
+				token, err := slavart.GetSessionTokenFromCredentials(email, password)
 				if err != nil {
 					continue
 				}
@@ -293,7 +294,7 @@ var downloadCmd = &cobra.Command{
 			sessionToken = sessionTokens[rand.Intn(length)]
 		}
 
-		slavartlib.Download(args, sessionToken, logLevel, quality, timeoutTime, cooldownDuration, outputDir, skipUnzip, ignoreCover, ignoreSubdirs)
+		slavart.Download(args, sessionToken, logLevel, quality, timeoutTime, cooldownDuration, outputDir, skipUnzip, ignoreCover, ignoreSubdirs)
 	},
 }
 
