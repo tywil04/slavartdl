@@ -24,6 +24,7 @@ jobs:
     - uses: wangyoucao577/go-release-action@v1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        project_path: "./cli"
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         binary_name: "slavartdl"
