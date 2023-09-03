@@ -1,9 +1,9 @@
 import { useRef } from "preact/hooks"
 import { TextInput, Button } from "@mantine/core"
-import { OpenFileDialog, SaveFileDialog } from "../../wailsjs/go/main/SlavartdlUI.js";
+import { OpenFileDialog, SaveFileDialog, OpenDirectoryDialog } from "../../wailsjs/go/main/SlavartdlUI.js";
 
 
-export default function OpenFileInput(props) {
+export default function FSInput(props) {
     const inputRef = useRef()
 
 
@@ -12,13 +12,18 @@ export default function OpenFileInput(props) {
 
         let func 
         switch (props.func) {
-            case "open": func = OpenFileDialog; break
-            case "save": func = SaveFileDialog; break
+            case "openDirectory": func = OpenDirectoryDialog; break
+            case "openFile": func = OpenFileDialog; break
+            case "saveFile": func = SaveFileDialog; break
         }
 
         if (func != undefined) {
-            inputRef.current.value = await func(props.funcData)
+            props.onChange?.(await func(props.funcData))
         }
+    }
+
+    const handleOnChange = (event) => {
+        props.onChange?.(event.target.value)
     }
     
 
@@ -45,6 +50,6 @@ export default function OpenFileInput(props) {
     delete inputProps.funcData
 
     return (
-        <TextInput {...inputProps} ref={inputRef} rightSection={browseButton} rightSectionWidth={66}/>
+        <TextInput {...inputProps} onChange={handleOnChange} ref={inputRef} rightSection={browseButton} rightSectionWidth={66}/>
     )
 }

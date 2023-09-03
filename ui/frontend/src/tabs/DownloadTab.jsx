@@ -1,19 +1,39 @@
 import { useState } from "preact/hooks"
 import { Textarea, Stack, Checkbox, SimpleGrid, Select, Card, Text, NumberInput, Button } from '@mantine/core';
-import OpenFileInput from "../components/FileInput.jsx";
+import FSInput from "../components/FSInput.jsx";
 
 
 export default function SlavartdlUI() {
     const [ skipUnzip, setSkipUnzip ] = useState(false)
     const [ ignoreCover, setIgnoreCover ] = useState(false)
     const [ ignoreSubDirs, setIgnoreSubDirs ] = useState(false)
+    const [ outputDir, setOutputDir ] = useState("")
+    const [ quality, setQuality ] = useState(0)
+    const [ timeout, setTimeout ] = useState(120)
+    const [ cooldown, setCooldown ] = useState(0)
+ 
 
+    const handleStartJob = () => {
+        console.log(`
+            skipUnzip: ${skipUnzip}
+            ignoreCover: ${ignoreCover}
+            ignoreSubDirs: ${ignoreSubDirs}
+            outputDir: ${outputDir}
+            quality: ${quality}
+            timeout: ${timeout}
+            cooldown: ${cooldown}
+        `)
+    }
 
     const handleCheckbox = (value, setter) => {
         return (event) => {
             event.preventDefault()
             setter(!value)
         }
+    }
+
+    const handleNumberInputStepperHold = (time) => {
+        return Math.max(1000 / time ** 2, 25)
     }
     
 
@@ -37,7 +57,7 @@ export default function SlavartdlUI() {
     const inputTheme = () => ({
         marginTop: -5,
     })
-    
+
 
     return (
         <Stack>
@@ -46,7 +66,7 @@ export default function SlavartdlUI() {
                 label={
                     <>
                         URLs
-                        <Button sx={addURLsToQueueButtonTheme}>Start Download Job with URLs</Button>
+                        <Button onClick={handleStartJob} sx={addURLsToQueueButtonTheme}>Start Download Job with URLs</Button>
                     </>
                 }
                 description="Seperate URLs with newlines."
@@ -88,14 +108,16 @@ export default function SlavartdlUI() {
 
                 <SimpleGrid cols={2}>
                     <Card withBorder sx={cardTheme}>
-                        <OpenFileInput 
+                        <FSInput 
                             sx={inputTheme}
                             required
-                            func="open"
+                            func="openDirectory"
                             funcData="Output Directory"
                             label="Output Directory" 
                             description="The directory to output the resulting file structure/zip archive."
                             placeholder="e.g. /path/to/directory"
+                            value={outputDir}
+                            onChange={setOutputDir}
                         />
                     </Card>
 
@@ -107,7 +129,7 @@ export default function SlavartdlUI() {
                             shadow="lg" 
                             label="Quality" 
                             description="The quality of the music that should be downloaded."
-                            defaultValue={0}
+                            clearable={false}
                             data={[
                                 { value: 0, label: "Best Quality Available" },
                                 { value: 1, label: "128kbps MP3/AAC" },
@@ -116,6 +138,8 @@ export default function SlavartdlUI() {
                                 { value: 4, label: "24bit ≤96kHz" },
                                 { value: 5, label: "24bit ≤192kHz" },
                             ]}
+                            value={quality}
+                            onChange={setQuality}
                         />
                     </Card>
 
@@ -125,12 +149,11 @@ export default function SlavartdlUI() {
                             required
                             label="Timeout" 
                             description="The number of seconds before a download times out."
-                            defaultValue={120}
                             stepHoldDelay={500}
-                            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-                            formatter={(value) => `${value} seconds`}
-                            parser={(value) => value.replace(/(.*) seconds/, "")}
+                            stepHoldInterval={handleNumberInputStepperHold}
                             min={0}
+                            value={timeout}
+                            onChange={setTimeout}
                         />
                     </Card>
 
@@ -140,12 +163,11 @@ export default function SlavartdlUI() {
                             required
                             label="Cooldown" 
                             description="The number of seconds to wait before starting the next download."
-                            defaultValue={0}
                             stepHoldDelay={500}
-                            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-                            formatter={(value) => `${value} seconds`}
-                            parser={(value) => value.replace(/(.*) seconds/, "")}
+                            stepHoldInterval={handleNumberInputStepperHold}
                             min={0}
+                            value={cooldown}
+                            onChange={setCooldown}
                         />
                     </Card>
                 </SimpleGrid>

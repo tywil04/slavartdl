@@ -21,6 +21,22 @@ func (s *SlavartdlUI) Startup(ctx context.Context) {
 func (s *SlavartdlUI) Shutdown(ctx context.Context) {
 }
 
+func (s *SlavartdlUI) OpenDirectoryDialog(title string) string {
+	opts := runtime.OpenDialogOptions{
+		Title:                      title,
+		CanCreateDirectories:       true,
+		ResolvesAliases:            true,
+		TreatPackagesAsDirectories: false,
+	}
+
+	file, err := runtime.OpenDirectoryDialog(s.ctx, opts)
+	if err != nil {
+		runtime.LogFatal(s.ctx, err.Error())
+	}
+
+	return file
+}
+
 func (s *SlavartdlUI) OpenFileDialog(title string) string {
 	opts := runtime.OpenDialogOptions{
 		Title:                      title,
