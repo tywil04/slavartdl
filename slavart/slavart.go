@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/tywil04/slavartdl/common"
+	"github.com/tywil04/slavartdl/slavart/internal/helpers"
 )
 
 const (
@@ -266,7 +267,7 @@ func Download(urls []string, sessionToken, logLevel string, quality int, timeout
 		defer os.Remove(tempFile.Name())
 
 		tempFilePath := tempFile.Name()
-		err = common.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
+		err = helpers.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
 		if err != nil {
 			if logLevel == "all" || logLevel == "errors" {
 				log.Fatal(err)
@@ -277,13 +278,13 @@ func Download(urls []string, sessionToken, logLevel string, quality int, timeout
 			if logLevel == "all" {
 				fmt.Println("\nUnzipping...")
 			}
-			if err := common.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
+			if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal(err)
 				}
 			}
 		} else {
-			zipName, err := common.GetZipName(tempFilePath)
+			zipName, err := helpers.GetZipName(tempFilePath)
 			if err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal(err)
@@ -295,7 +296,7 @@ func Download(urls []string, sessionToken, logLevel string, quality int, timeout
 			}
 			outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
 			// temp file gets deleted later
-			if err := common.CopyFile(tempFilePath, outputFileDir); err != nil {
+			if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal(err)
 				}

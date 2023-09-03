@@ -11,10 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/tywil04/slavartdl/common"
-	"github.com/tywil04/slavartdl/slavart"
-
 	"github.com/tywil04/slavartdl/cli/internal/config"
+	"github.com/tywil04/slavartdl/cli/internal/helpers"
+	"github.com/tywil04/slavartdl/slavart"
 )
 
 var downloadCmd = &cobra.Command{
@@ -213,7 +212,7 @@ var downloadCmd = &cobra.Command{
 
 		if fromFile != "" {
 			// if a file is provided, add the urls to the list to be processed
-			urls, err := common.GetUrlsFromFile(fromFile)
+			urls, err := helpers.GetUrlsFromFile(fromFile)
 			if err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal("failed to read urls from file")
@@ -224,7 +223,7 @@ var downloadCmd = &cobra.Command{
 
 		if fromStdin {
 			// if told to read from stdin
-			urls, err := common.GetUrlsFromStdin()
+			urls, err := helpers.GetUrlsFromStdin()
 			if err != nil {
 				if logLevel == "all" || logLevel == "errors" {
 					log.Fatal("failed to read urls from stdin")
