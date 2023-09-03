@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "slavartdlui",
+  "outputfilename": "slavartdlui",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Tyler",
+    "email": "github.26ac3d4d@alias.tylerw.co.uk"
+  }
+}

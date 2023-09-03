@@ -1,0 +1,22 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@mantine/core": "^6.0.19",
+    "@mantine/hooks": "^6.0.19",
+    "@tabler/icons-react": "^2.32.0",
+    "preact": "^10.10.1"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.3.0",
+    "vite": "^3.0.7"
+  }
+}
