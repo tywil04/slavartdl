@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"math/rand"
 	"net/url"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -241,129 +239,61 @@ var downloadCmd = &cobra.Command{
 			}
 		}
 
-		for _, link := range args {
-			// randomly select a session token to avoid using the same account all the time
-			var sessionToken string
-			sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-			loginCredentialsInterface := viper.Get("divoltlogincredentials")
+		// randomly select a session token to avoid using the same account all the time
+		var sessionToken string
+		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
+		loginCredentialsInterface := viper.Get("divoltlogincredentials")
 
-			if loginCredentials, ok := loginCredentialsInterface.([]any); ok {
-				for _, credentialAny := range loginCredentials {
-					// if any issue is encountered skip these credentials
+		if loginCredentials, ok := loginCredentialsInterface.([]any); ok {
+			for _, credentialAny := range loginCredentials {
+				// if any issue is encountered skip these credentials
 
-					credential, ok := credentialAny.(map[string]any)
-					if !ok {
-						continue
-					}
-
-					emailInterface, ok := credential["email"]
-					if !ok {
-						continue
-					}
-
-					email, ok := emailInterface.(string)
-					if !ok {
-						continue
-					}
-
-					passwordInterface, ok := credential["password"]
-					if !ok {
-						continue
-					}
-
-					password, ok := passwordInterface.(string)
-					if !ok {
-						continue
-					}
-
-					token, err := slavart.GetSessionTokenFromCredentials(email, password)
-					if err != nil {
-						continue
-					}
-
-					sessionTokens = append(sessionTokens, token)
+				credential, ok := credentialAny.(map[string]any)
+				if !ok {
+					continue
 				}
-			}
 
-			length := len(sessionTokens)
-			if length == 0 {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal("no session tokens found in config")
+				emailInterface, ok := credential["email"]
+				if !ok {
+					continue
 				}
-			} else if length == 1 {
-				sessionToken = sessionTokens[0]
-			} else {
-				sessionToken = sessionTokens[rand.Intn(length)]
-			}
 
-			if logLevel == "all" {
-				fmt.Println("Getting download link...")
-			}
-			downloadLink, err := slavart.GetDownloadLinkFromSlavart(sessionToken, link, quality, timeoutTime)
-			if err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal(err)
+				email, ok := emailInterface.(string)
+				if !ok {
+					continue
 				}
-			}
 
-			if logLevel == "all" {
-				fmt.Println("\nDownloading zip...")
-			}
-			// this will create a temp file in the default location
-			tempFile, err := os.CreateTemp("", "slavartdl.*.zip")
-			if err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal(err)
+				passwordInterface, ok := credential["password"]
+				if !ok {
+					continue
 				}
-			}
-			defer os.Remove(tempFile.Name())
 
-			tempFilePath := tempFile.Name()
-			err = helpers.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
-			if err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal(err)
+				password, ok := passwordInterface.(string)
+				if !ok {
+					continue
 				}
-			}
 
-			if !skipUnzip {
-				if logLevel == "all" {
-					fmt.Println("\nUnzipping...")
-				}
-				if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
-					if logLevel == "all" || logLevel == "errors" {
-						log.Fatal(err)
-					}
-				}
-			} else {
-				zipName, err := helpers.GetZipName(tempFilePath)
+				token, err := slavart.GetSessionTokenFromCredentials(email, password)
 				if err != nil {
-					if logLevel == "all" || logLevel == "errors" {
-						log.Fatal(err)
-					}
+					continue
 				}
 
-				if logLevel == "all" {
-					fmt.Println(filepath.Clean(zipName))
-				}
-				outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
-				// temp file gets deleted later
-				if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
-					if logLevel == "all" || logLevel == "errors" {
-						log.Fatal(err)
-					}
-				}
-
-			}
-
-			if logLevel == "all" {
-				fmt.Println("\nDone!")
-			}
-
-			if link != args[len(args)-1] {
-				time.Sleep(cooldownDuration)
+				sessionTokens = append(sessionTokens, token)
 			}
 		}
+
+		length := len(sessionTokens)
+		if length == 0 {
+			if logLevel == "all" || logLevel == "errors" {
+				log.Fatal("no session tokens found in config")
+			}
+		} else if length == 1 {
+			sessionToken = sessionTokens[0]
+		} else {
+			sessionToken = sessionTokens[rand.Intn(length)]
+		}
+
+		slavart.Download(args, sessionToken, logLevel, quality, timeoutTime, cooldownDuration, outputDir, skipUnzip, ignoreCover, ignoreSubdirs)
 	},
 }
 
