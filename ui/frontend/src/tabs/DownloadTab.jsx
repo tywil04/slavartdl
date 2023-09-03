@@ -46,7 +46,7 @@ export default function SlavartdlUI() {
                 label={
                     <>
                         URLs
-                        <Button sx={addURLsToQueueButtonTheme}>Add URLs to download queue</Button>
+                        <Button sx={addURLsToQueueButtonTheme}>Start Download Job with URLs</Button>
                     </>
                 }
                 description="Seperate URLs with newlines."

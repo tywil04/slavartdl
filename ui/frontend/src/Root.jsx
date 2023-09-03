@@ -84,8 +84,8 @@ export default function Root() {
                 <Tabs defaultValue="download" variant="pills" styles={tabsStyle}>
                     <SimpleGrid cols={2}>
                         <Tabs.List>
-                            <Tabs.Tab value="download">Download Tab</Tabs.Tab>
-                            <Tabs.Tab value="queue">Queue Tab</Tabs.Tab>
+                            <Tabs.Tab value="download">Download</Tabs.Tab>
+                            <Tabs.Tab value="jobsQueue">Jobs Queue</Tabs.Tab>
                         </Tabs.List>
                         
                         <Button 
@@ -103,8 +103,8 @@ export default function Root() {
                         <DownloadTab/>
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="queue">
-                        <p>This is queue</p>
+                    <Tabs.Panel value="jobsQueue">
+                        <p>This will have a list of jobs, and how the current job is progressing</p>
                     </Tabs.Panel>
                 </Tabs>
             </MantineProvider>
