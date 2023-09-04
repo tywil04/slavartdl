@@ -1,11 +1,14 @@
 import { render } from 'preact'
-import { MantineProvider, SimpleGrid, Button, ColorSchemeProvider } from '@mantine/core';
+import { useState } from 'preact/hooks';
+import { useListState } from "@mantine/hooks"
+import { MantineProvider, SimpleGrid, Button, ColorSchemeProvider, TypographyStylesProvider } from '@mantine/core';
 import { Tabs } from '@mantine/core';
 import DownloadTab from './tabs/DownloadTab.jsx';
-import { useState } from 'preact/hooks';
+import JobQueueTab from './tabs/JobQueueTab.jsx';
 
 
 export default function Root() {
+    const [ jobQueue, jobQueueHandlers ] = useListState([])
     const [ colorScheme, setColorScheme ] = useState("dark")
 
 
@@ -81,32 +84,34 @@ export default function Root() {
     return (
         <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={handleTheme}>
             <MantineProvider theme={mantineTheme} withGlobalStyles withNormalizeCSS>
-                <Tabs defaultValue="download" variant="pills" styles={tabsStyle}>
-                    <SimpleGrid cols={2}>
-                        <Tabs.List>
-                            <Tabs.Tab value="download">Download</Tabs.Tab>
-                            <Tabs.Tab value="jobsQueue">Jobs Queue</Tabs.Tab>
-                        </Tabs.List>
-                        
-                        <Button 
-                            variant="outline" 
-                            compact={false} 
-                            sx={themeButtonTheme} 
-                            tt="capitalize"
-                            onClick={handleTheme}
-                        >
-                            Use {colorScheme === "dark" ? "light" : "dark"} Mode
-                        </Button>
-                    </SimpleGrid>
+                <TypographyStylesProvider>
+                    <Tabs defaultValue="download" variant="pills" styles={tabsStyle}>
+                        <SimpleGrid cols={2}>
+                            <Tabs.List>
+                                <Tabs.Tab value="download">Download</Tabs.Tab>
+                                <Tabs.Tab value="jobsQueue">Jobs Queue</Tabs.Tab>
+                            </Tabs.List>
+                            
+                            <Button 
+                                variant="outline" 
+                                compact={false} 
+                                sx={themeButtonTheme} 
+                                tt="capitalize"
+                                onClick={handleTheme}
+                            >
+                                Use {colorScheme === "dark" ? "light" : "dark"} Mode
+                            </Button>
+                        </SimpleGrid>
 
-                    <Tabs.Panel value="download">
-                        <DownloadTab/>
-                    </Tabs.Panel>
+                        <Tabs.Panel value="download">
+                            <DownloadTab jobQueue={jobQueue} jobQueueHandlers={jobQueueHandlers}/>
+                        </Tabs.Panel>
 
-                    <Tabs.Panel value="jobsQueue">
-                        <p>This will have a list of jobs, and how the current job is progressing</p>
-                    </Tabs.Panel>
-                </Tabs>
+                        <Tabs.Panel value="jobsQueue">
+                            <JobQueueTab jobQueue={jobQueue} jobQueueHandlers={jobQueueHandlers}/>
+                        </Tabs.Panel>
+                    </Tabs>
+                </TypographyStylesProvider>
             </MantineProvider>
         </ColorSchemeProvider>
     )

@@ -1,9 +1,10 @@
 import { useState } from "preact/hooks"
 import { Textarea, Stack, Checkbox, SimpleGrid, Select, Card, Text, NumberInput, Button } from '@mantine/core';
+import { useForm } from "@mantine/form"
 import FSInput from "../components/FSInput.jsx";
 
 
-export default function SlavartdlUI() {
+export default function DownloadTab(props) {
     const [ ignoreErrs, setIgnoreErrs ] = useState(true)
     const [ skipUnzip, setSkipUnzip ] = useState(false)
     const [ ignoreCover, setIgnoreCover ] = useState(false)
@@ -14,7 +15,7 @@ export default function SlavartdlUI() {
     const [ quality, setQuality ] = useState(0)
     const [ timeout, setTimeout ] = useState(120)
     const [ cooldown, setCooldown ] = useState(0)
- 
+
 
     const handleStartJob = () => {
         const data = [
