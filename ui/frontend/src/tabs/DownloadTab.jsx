@@ -4,9 +4,12 @@ import FSInput from "../components/FSInput.jsx";
 
 
 export default function SlavartdlUI() {
+    const [ ignoreErrs, setIgnoreErrs ] = useState(true)
     const [ skipUnzip, setSkipUnzip ] = useState(false)
     const [ ignoreCover, setIgnoreCover ] = useState(false)
     const [ ignoreSubDirs, setIgnoreSubDirs ] = useState(false)
+    const [ skipUrlChecking, setSkipUrlChecking ] = useState(false)
+    const [ dryRun, setDryRun ] = useState(false)
     const [ outputDir, setOutputDir ] = useState("")
     const [ quality, setQuality ] = useState(0)
     const [ timeout, setTimeout ] = useState(120)
@@ -14,15 +17,20 @@ export default function SlavartdlUI() {
  
 
     const handleStartJob = () => {
-        console.log(`
-            skipUnzip: ${skipUnzip}
-            ignoreCover: ${ignoreCover}
-            ignoreSubDirs: ${ignoreSubDirs}
-            outputDir: ${outputDir}
-            quality: ${quality}
-            timeout: ${timeout}
-            cooldown: ${cooldown}
-        `)
+        const data = [
+            "SUBMIT DATA:",
+            `- ignoreErrs: ${ignoreErrs}`,
+            `- skipUnzip: ${skipUnzip}`,
+            `- ignoreCover: ${ignoreCover}`,
+            `- ignoreSubDirs: ${ignoreSubDirs}`,
+            `- skipUrlChecking: ${skipUrlChecking}`,
+            `- dryRun: ${dryRun}`,
+            `- outputDir: ${outputDir}`,
+            `- quality: ${quality}`,
+            `- timeout: ${timeout}`,
+            `- cooldown: ${cooldown}`,
+        ]
+        console.log(data.join("\n"))
     }
 
     const handleCheckbox = (value, setter) => {
@@ -77,6 +85,14 @@ export default function SlavartdlUI() {
                 <Text size="xs" tt="uppercase" c="dimmed">Bool Options</Text>
 
                 <SimpleGrid cols={3}>
+                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(ignoreErrs, setIgnoreErrs)}>
+                        <Checkbox 
+                            label="Ignore Errors" 
+                            description="If an error occurs while downloading a URL, should the error be ignored."
+                            checked={ignoreErrs}
+                        />
+                    </Card>
+
                     <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(skipUnzip, setSkipUnzip)}>
                         <Checkbox 
                             label="Skip Unzipping" 
@@ -98,6 +114,22 @@ export default function SlavartdlUI() {
                             label="Ignore Sub Directories" 
                             description="If unzipping, should sub directories be ignored or extracted." 
                             checked={ignoreSubDirs} 
+                        />
+                    </Card>
+
+                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(skipUrlChecking, setSkipUrlChecking)}>
+                        <Checkbox 
+                            label="Skip Checking URLs" 
+                            description="Skip checking every URL against known compatible hosts for slavart." 
+                            checked={skipUrlChecking} 
+                        />
+                    </Card>
+
+                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(dryRun, setDryRun)}>
+                        <Checkbox 
+                            label="Dry Run" 
+                            description="The zip file collected won't be downloaded but all other systems run." 
+                            checked={dryRun} 
                         />
                     </Card>
                 </SimpleGrid>
