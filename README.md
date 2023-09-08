@@ -88,10 +88,10 @@ Follows these steps to get a session token:
 - Find and select a request with the domain of 'api.divolt.xyz'.
 - Select the header tab and copy the value of the x-session-token. If there is no x-session-token select another request.
 
-## Building
-To build this application you need to have Go(lang) installed. Once installed run the following commands:
+## Building CLI
+To build the command line application you need to have Go(lang) installed. Once installed run the following commands:
 ```
 git clone https://github.com/tywil04/slavartdl
 cd slavartdl
-go build -o slavartdl main.go
+go build -o slavartdl cli/main.go
 ```
