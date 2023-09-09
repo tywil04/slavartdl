@@ -1,37 +1,120 @@
-import { useState } from "preact/hooks"
 import { Textarea, Stack, Checkbox, SimpleGrid, Select, Card, Text, NumberInput, Button } from '@mantine/core';
-import { useForm } from "@mantine/form"
+import { notifications } from '@mantine/notifications';
+import { useInputState } from "@mantine/hooks"
 import FSInput from "../components/FSInput.jsx";
+import { GetAllowedHosts } from '../../wailsjs/go/main/SlavartdlUI.js';
+import { useRef } from 'preact/hooks';
+import { HiMiniCheck, HiMiniExclamationTriangle } from 'react-icons/hi2';
 
 
 export default function DownloadTab(props) {
-    const [ ignoreErrs, setIgnoreErrs ] = useState(true)
-    const [ skipUnzip, setSkipUnzip ] = useState(false)
-    const [ ignoreCover, setIgnoreCover ] = useState(false)
-    const [ ignoreSubDirs, setIgnoreSubDirs ] = useState(false)
-    const [ skipUrlChecking, setSkipUrlChecking ] = useState(false)
-    const [ dryRun, setDryRun ] = useState(false)
-    const [ outputDir, setOutputDir ] = useState("")
-    const [ quality, setQuality ] = useState(0)
-    const [ timeout, setTimeout ] = useState(120)
-    const [ cooldown, setCooldown ] = useState(0)
+    const [ ignoreErrs, setIgnoreErrs ] = useInputState(false)
+    const [ skipUnzip, setSkipUnzip ] = useInputState(false)
+    const [ ignoreCover, setIgnoreCover ] = useInputState(false)
+    const [ ignoreSubDirs, setIgnoreSubDirs ] = useInputState(false)
+    const [ skipUrlChecking, setSkipUrlChecking ] = useInputState(false)
+    const [ dryRun, setDryRun ] = useInputState(false)
+    const [ outputDir, setOutputDir ] = useInputState("")
+    const [ quality, setQuality ] = useInputState(0)
+    const [ timeout, setTimeout ] = useInputState(120)
+    const [ cooldown, setCooldown ] = useInputState(0)
+    const [ urls, setUrls ] = useInputState("")
+    const textareaRef = useRef()
 
 
-    const handleStartJob = () => {
-        const data = [
-            "SUBMIT DATA:",
-            `- ignoreErrs: ${ignoreErrs}`,
-            `- skipUnzip: ${skipUnzip}`,
-            `- ignoreCover: ${ignoreCover}`,
-            `- ignoreSubDirs: ${ignoreSubDirs}`,
-            `- skipUrlChecking: ${skipUrlChecking}`,
-            `- dryRun: ${dryRun}`,
-            `- outputDir: ${outputDir}`,
-            `- quality: ${quality}`,
-            `- timeout: ${timeout}`,
-            `- cooldown: ${cooldown}`,
-        ]
-        console.log(data.join("\n"))
+    const handleStartJob = async () => {
+        let errorWhileFiltering = false
+        const allowed = await GetAllowedHosts()
+        const rawUrls = urls.split("\n")
+        const trimmedUrls = rawUrls.map((url) => url.trim())
+        const filteredUrls = trimmedUrls.filter((url) => {
+            if (url.length === 0) {
+                return false
+            }
+
+            if (!skipUrlChecking) {
+                let parsedUrl 
+                try {
+                    parsedUrl = new URL(url)
+                } catch {
+                    errorWhileFiltering = true
+                    notifications.show({
+                        title: "Error",
+                        message: "A non-URL was found, aborting.",
+                        color: "red",
+                        icon: <HiMiniExclamationTriangle size="16"/>,
+                    })
+
+                    return false
+                }
+
+                if (!allowed.includes(parsedUrl.hostname)) {
+                    errorWhileFiltering = true
+                    notifications.show({
+                        title: "Error",
+                        message: "A URL with an unknown host has been found, aborting.",
+                        color: "red",
+                        icon: <HiMiniExclamationTriangle size="16"/>,
+                    })
+
+                    return false
+                }
+            }
+
+            return true
+        })
+
+        if (errorWhileFiltering) {
+            return
+        }
+
+        if (filteredUrls.length === 0) {
+            setUrls("")
+            textareaRef.current.focus()
+
+            notifications.show({
+                title: "Error",
+                message: "No URLs found.",
+                color: "red",
+                icon: <HiMiniExclamationTriangle size="16"/>,
+            })
+
+            return
+        }
+
+        setOutputDir(outputDir.trim())
+        if (outputDir === "") {
+            notifications.show({
+                title: "Error",
+                message: "No output directory found.",
+                color: "red",
+                icon: <HiMiniExclamationTriangle size="16"/>,
+            })
+
+            return
+        }
+
+        props.queueHandlers.appendBatch(filteredUrls, {
+            ignoreErrs,
+            skipUnzip,
+            ignoreCover,
+            ignoreSubDirs,
+            skipUrlChecking,
+            dryRun,
+            outputDir,
+            quality,
+            timeout,
+            cooldown,
+        })
+
+        notifications.show({
+            title: "Success",
+            message: "Successfully added URLs to download queue.",
+            color: "blue",
+            icon: <HiMiniCheck size="16"/>,
+        })
+
+        setUrls("")
     }
 
     const handleCheckbox = (value, setter) => {
@@ -41,52 +124,53 @@ export default function DownloadTab(props) {
         }
     }
 
-    const handleNumberInputStepperHold = (time) => {
-        return Math.max(1000 / time ** 2, 25)
-    }
+    const handleNumberInputStepperHold = (time) => Math.max(1000 / time ** 2, 25)
     
 
-    const addURLsToQueueButtonTheme = (theme) => ({
+    const addURLsToQueueButtonStyle = (theme) => ({
         position: "absolute",
-        right: theme.globalStyles(theme).body.padding,
+        right: theme.globalStyles(theme)["#root"].padding,
         marginTop: 6
     })
 
-    const checkboxCardTheme = (theme) => ({
+    const checkboxCardStyle = (theme) => ({
         cursor: "pointer",
         backgroundColor: theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.colors.gray[0],
+        border: `1px solid ${theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[2]}`,
         borderRadius: 12
     })
 
-    const cardTheme = (theme) => ({
+    const cardStyle = (theme) => ({
         backgroundColor: theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.colors.gray[0],
+        border: `1px solid ${theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[2]}`,
         borderRadius: 12
     })
 
-    const inputTheme = () => ({
-        marginTop: -5,
-    })
+    const inputStyle = (theme) => ({ marginTop: -5 })
 
 
     return (
-        <Stack>
+        <Stack spacing="xl">
             <Textarea 
+                ref={textareaRef}
+                required
                 minRows={3} 
                 label={
                     <>
                         URLs
-                        <Button onClick={handleStartJob} sx={addURLsToQueueButtonTheme}>Start Download Job with URLs</Button>
+                        <Button onClick={handleStartJob} sx={addURLsToQueueButtonStyle}>Add URLs to Queue</Button>
                     </>
                 }
                 description="Seperate URLs with newlines."
-                required
+                value={urls}
+                onChange={setUrls}
             />
 
             <Stack spacing={2}>
                 <Text size="xs" tt="uppercase" c="dimmed">Bool Options</Text>
 
-                <SimpleGrid cols={3}>
-                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(ignoreErrs, setIgnoreErrs)}>
+                <SimpleGrid cols={3} spacing="lg">
+                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(ignoreErrs, setIgnoreErrs)}>
                         <Checkbox 
                             label="Ignore Errors" 
                             description="If an error occurs while downloading a URL, should the error be ignored."
@@ -94,7 +178,7 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(skipUnzip, setSkipUnzip)}>
+                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(skipUnzip, setSkipUnzip)}>
                         <Checkbox 
                             label="Skip Unzipping" 
                             description="Skip unzipping the downloaded zip file into the output directory."
@@ -102,7 +186,7 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(ignoreCover, setIgnoreCover)}>
+                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(ignoreCover, setIgnoreCover)}>
                         <Checkbox 
                             label="Ignore Cover Image" 
                             description="If unzipping, should the cover image be ignored or extracted."
@@ -110,7 +194,7 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(ignoreSubDirs, setIgnoreSubDirs)}>
+                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(ignoreSubDirs, setIgnoreSubDirs)}>
                         <Checkbox 
                             label="Ignore Sub Directories" 
                             description="If unzipping, should sub directories be ignored or extracted." 
@@ -118,7 +202,7 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(skipUrlChecking, setSkipUrlChecking)}>
+                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(skipUrlChecking, setSkipUrlChecking)}>
                         <Checkbox 
                             label="Skip Checking URLs" 
                             description="Skip checking every URL against known compatible hosts for slavart." 
@@ -126,7 +210,7 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={checkboxCardTheme} onClick={handleCheckbox(dryRun, setDryRun)}>
+                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(dryRun, setDryRun)}>
                         <Checkbox 
                             label="Dry Run" 
                             description="The zip file collected won't be downloaded but all other systems run." 
@@ -139,10 +223,10 @@ export default function DownloadTab(props) {
             <Stack spacing={2}>
                 <Text size="xs" tt="uppercase" c="dimmed">Options</Text>
 
-                <SimpleGrid cols={2}>
-                    <Card withBorder sx={cardTheme}>
+                <SimpleGrid cols={2} spacing="lg">
+                    <Card sx={cardStyle}>
                         <FSInput 
-                            sx={inputTheme}
+                            sx={inputStyle}
                             required
                             func="openDirectory"
                             funcData="Output Directory"
@@ -154,9 +238,9 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={cardTheme}>
+                    <Card sx={cardStyle}>
                         <Select
-                            sx={inputTheme}
+                            sx={inputStyle}
                             required
                             withinPortal 
                             shadow="lg" 
@@ -176,9 +260,9 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={cardTheme}>
+                    <Card sx={cardStyle}>
                         <NumberInput
-                            sx={inputTheme}
+                            sx={inputStyle}
                             required
                             label="Timeout" 
                             description="The number of seconds before a download times out."
@@ -190,9 +274,9 @@ export default function DownloadTab(props) {
                         />
                     </Card>
 
-                    <Card withBorder sx={cardTheme}>
+                    <Card sx={cardStyle}>
                         <NumberInput
-                            sx={inputTheme}
+                            sx={inputStyle}
                             required
                             label="Cooldown" 
                             description="The number of seconds to wait before starting the next download."

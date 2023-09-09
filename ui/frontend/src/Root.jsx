@@ -1,20 +1,18 @@
 import { render } from 'preact'
 import { useState } from 'preact/hooks';
-import { useListState } from "@mantine/hooks"
-import { MantineProvider, SimpleGrid, Button, ColorSchemeProvider, TypographyStylesProvider } from '@mantine/core';
+import { useUrlQueue } from "./hooks/hooks.js"
+import { MantineProvider, ColorSchemeProvider, TypographyStylesProvider, Tooltip } from '@mantine/core';
 import { Tabs } from '@mantine/core';
+import { HiMiniArrowDownTray, HiMiniCog6Tooth, HiMiniQueueList } from "react-icons/hi2"
+import { Notifications } from "@mantine/notifications"
 import DownloadTab from './tabs/DownloadTab.jsx';
-import JobQueueTab from './tabs/JobQueueTab.jsx';
+import QueueTab from './tabs/QueueTab.jsx';
+import SettingsTab from './tabs/SettingsTab.jsx';
 
 
 export default function Root() {
-    const [ jobQueue, jobQueueHandlers ] = useListState([])
+    const [ queue, queueHandlers ] = useUrlQueue([])
     const [ colorScheme, setColorScheme ] = useState("dark")
-
-
-    const handleTheme = (event) => {
-        setColorScheme(colorScheme === "dark" ? "light" : "dark")
-    }
 
 
     const mantineTheme = {
@@ -32,12 +30,14 @@ export default function Root() {
             },
         },
         globalStyles: (theme) => ({
-            body: {
+            "#root": {
                 backgroundColor: theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[1],
-                padding: 60
+                padding: 40,
+                minHeight: "100vh"
             }
         })
     }
+
 
     const tabsStyle = (theme) => ({
         root: {
@@ -51,7 +51,7 @@ export default function Root() {
             width: "fit-content",
         },
         panel: {
-            marginTop: 30,
+            marginTop: 20,
         },
         tab: {
             transitionDuration: "100ms",
@@ -68,47 +68,38 @@ export default function Root() {
         }
     })
 
-    const themeButtonTheme = (theme) => ({
-        border: `1px solid ${theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[3]}`,
-        color: theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
-        fontWeight: "normal",
-        marginTop: "auto",
-        marginBottom: "auto",
-        marginLeft: "auto",
-        "&:hover": {
-            backgroundColor: theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.colors.gray[2]
-        }
-    })
-
 
     return (
-        <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={handleTheme}>
+        <ColorSchemeProvider colorScheme={colorScheme}>
             <MantineProvider theme={mantineTheme} withGlobalStyles withNormalizeCSS>
                 <TypographyStylesProvider>
+                    <Notifications position="top-center"/>
+                    
                     <Tabs defaultValue="download" variant="pills" styles={tabsStyle}>
-                        <SimpleGrid cols={2}>
-                            <Tabs.List>
-                                <Tabs.Tab value="download">Download</Tabs.Tab>
-                                <Tabs.Tab value="jobsQueue">Jobs Queue</Tabs.Tab>
-                            </Tabs.List>
-                            
-                            <Button 
-                                variant="outline" 
-                                compact={false} 
-                                sx={themeButtonTheme} 
-                                tt="capitalize"
-                                onClick={handleTheme}
-                            >
-                                Use {colorScheme === "dark" ? "light" : "dark"} Mode
-                            </Button>
-                        </SimpleGrid>
+                        <Tabs.List>
+                            <Tooltip label="Download" withArrow position="right">
+                                <Tabs.Tab value="download" icon={<HiMiniArrowDownTray size="16"/>}/>
+                            </Tooltip>
+
+                            <Tooltip label="Queue" withArrow position="right">
+                                <Tabs.Tab value="queue" icon={<HiMiniQueueList size="16"/>}/>
+                            </Tooltip>
+
+                            <Tooltip label="Settings" withArrow position="right">
+                                <Tabs.Tab value="settings" icon={<HiMiniCog6Tooth size="16"/>}/>
+                            </Tooltip>
+                        </Tabs.List>
 
                         <Tabs.Panel value="download">
-                            <DownloadTab jobQueue={jobQueue} jobQueueHandlers={jobQueueHandlers}/>
+                            <DownloadTab queue={queue} queueHandlers={queueHandlers}/>
                         </Tabs.Panel>
 
-                        <Tabs.Panel value="jobsQueue">
-                            <JobQueueTab jobQueue={jobQueue} jobQueueHandlers={jobQueueHandlers}/>
+                        <Tabs.Panel value="queue">
+                            <QueueTab queue={queue} queueHandlers={queueHandlers}/>
+                        </Tabs.Panel>
+
+                        <Tabs.Panel value="settings">
+                            <SettingsTab colorScheme={colorScheme} setColorScheme={setColorScheme}/>
                         </Tabs.Panel>
                     </Tabs>
                 </TypographyStylesProvider>

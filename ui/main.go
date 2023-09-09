@@ -20,7 +20,7 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:  "SlavartdlUI",
 		Width:  1024,
-		Height: 768,
+		Height: 776,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

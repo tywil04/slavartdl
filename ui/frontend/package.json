@@ -4,16 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "bun x vite",
+    "build": "bun x vite build",
+    "preview": "bun x vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@mantine/core": "^6.0.19",
     "@mantine/hooks": "^6.0.19",
-    "@tabler/icons-react": "^2.32.0",
-    "preact": "^10.10.1"
+    "@mantine/notifications": "^6.0.20",
+    "preact": "^10.10.1",
+    "react-icons": "^4.11.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.3.0",

@@ -2,12 +2,17 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+
+	"github.com/tywil04/slavartdl/slavart"
 )
 
 type SlavartdlUI struct {
 	ctx context.Context
+
+	sessionToken string
 }
 
 func Init() *SlavartdlUI {
@@ -69,4 +74,36 @@ func (s *SlavartdlUI) SaveFileDialog(defaultFilename string) string {
 	}
 
 	return file
+}
+
+func (s *SlavartdlUI) GetAllowedHosts() []string {
+	return slavart.AllowedHosts
+}
+
+func (s *SlavartdlUI) Login(email, password string) bool {
+	var err error
+	s.sessionToken, err = slavart.GetSessionTokenFromCredentials(email, password)
+	if err != nil {
+		runtime.LogError(s.ctx, err.Error())
+		return false
+	}
+	return true
+}
+
+func (s *SlavartdlUI) DownloadUrl(url, outputDir string, quality, timeout, cooldown int, skipUnzip, ignoreCover, ignoreSubdirs bool) {
+	timeoutTime := time.Now().Add(time.Duration(timeout) * time.Second)
+	cooldownDuration := time.Duration(cooldown) * time.Second
+
+	slavart.DownloadUrl(
+		url,
+		s.sessionToken,
+		"silent",
+		quality,
+		timeoutTime,
+		cooldownDuration,
+		outputDir,
+		skipUnzip,
+		ignoreCover,
+		ignoreSubdirs,
+	)
 }

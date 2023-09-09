@@ -1,9 +1,14 @@
 import { useRef } from "preact/hooks"
+import { useUncontrolled } from "@mantine/hooks";
 import { TextInput, Button } from "@mantine/core"
 import { OpenFileDialog, SaveFileDialog, OpenDirectoryDialog } from "../../wailsjs/go/main/SlavartdlUI.js";
 
 
 export default function FSInput(props) {
+    const [value, onChange] = useUncontrolled({
+        value: props.value,
+        onChange: props.onChange,
+    });
     const inputRef = useRef()
 
 
@@ -18,16 +23,16 @@ export default function FSInput(props) {
         }
 
         if (func != undefined) {
-            props.onChange?.(await func(props.funcData))
+            onChange(await func(props.funcData))
         }
     }
 
     const handleOnChange = (event) => {
-        props.onChange?.(event.target.value)
+        onChange(event.target.value)
     }
     
 
-    const browseButtonTheme = (theme) => ({
+    const browseButtonStyle = (theme) => ({
         color: theme.colorScheme === "dark" ? theme.colors.dark[1] : theme.colors.dark[3],
         paddingLeft: 12, 
         paddingRight: 12, 
@@ -38,8 +43,16 @@ export default function FSInput(props) {
         height: "calc(100% - 2px)",
     })
 
+
     const browseButton = (
-        <Button compact={false} variant="subtle" size="xs" color="gray" sx={browseButtonTheme} onClick={handleBrowseButton}>
+        <Button 
+            compact={false} 
+            variant="subtle" 
+            size="xs" 
+            color="gray" 
+            sx={browseButtonStyle} 
+            onClick={handleBrowseButton}
+        >
             Browse
         </Button>
     )
@@ -49,7 +62,8 @@ export default function FSInput(props) {
     delete inputProps.func 
     delete inputProps.funcData
 
+    
     return (
-        <TextInput {...inputProps} onChange={handleOnChange} ref={inputRef} rightSection={browseButton} rightSectionWidth={66}/>
+        <TextInput {...inputProps} value={value} onChange={handleOnChange} ref={inputRef} rightSection={browseButton} rightSectionWidth={66}/>
     )
 }
