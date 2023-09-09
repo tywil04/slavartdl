@@ -294,7 +294,13 @@ var downloadCmd = &cobra.Command{
 		}
 
 		for _, url := range args {
-			slavart.DownloadUrl(url, sessionToken, logLevel, quality, timeoutTime, cooldownDuration, outputDir, skipUnzip, ignoreCover, ignoreSubdirs)
+			err = slavart.DownloadUrl(url, sessionToken, quality, timeoutTime, cooldownDuration, outputDir, skipUnzip, ignoreCover, ignoreSubdirs, logLevel == "all")
+			if err != nil {
+				if logLevel == "all" || logLevel == "errors" {
+					log.Fatal(err)
+				}
+			}
+
 			if url != args[len(args)-1] {
 				time.Sleep(cooldownDuration)
 			}

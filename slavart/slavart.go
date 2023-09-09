@@ -3,7 +3,6 @@ package slavart
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -245,70 +244,61 @@ func GetDownloadLinkFromSlavart(sessionToken, link string, quality int, timeoutT
 }
 
 // The whole download routine
-func DownloadUrl(url, sessionToken, logLevel string, quality int, timeoutTime time.Time, cooldownDuration time.Duration, outputDir string, skipUnzip, ignoreCover, ignoreSubdirs bool) {
-	if logLevel == "all" {
+func DownloadUrl(url, sessionToken string, quality int, timeoutTime time.Time, cooldownDuration time.Duration, outputDir string, skipUnzip, ignoreCover, ignoreSubdirs bool, printToStdout bool) error {
+	if printToStdout {
 		fmt.Println("Getting download link...")
 	}
+
 	downloadLink, err := GetDownloadLinkFromSlavart(sessionToken, url, quality, timeoutTime)
 	if err != nil {
-		if logLevel == "all" || logLevel == "errors" {
-			log.Fatal(err)
-		}
+		return err
 	}
 
-	if logLevel == "all" {
+	if printToStdout {
 		fmt.Println("\nDownloading zip...")
 	}
 	// this will create a temp file in the default location
 	tempFile, err := os.CreateTemp("", "slavartdl.*.zip")
 	if err != nil {
-		if logLevel == "all" || logLevel == "errors" {
-			log.Fatal(err)
-		}
+		return err
 	}
 	defer os.Remove(tempFile.Name())
 
 	tempFilePath := tempFile.Name()
-	err = helpers.DownloadFile(downloadLink, tempFilePath, logLevel != "all")
+	err = helpers.DownloadFile(downloadLink, tempFilePath, !printToStdout)
 	if err != nil {
-		if logLevel == "all" || logLevel == "errors" {
-			log.Fatal(err)
-		}
+		return err
 	}
 
 	if !skipUnzip {
-		if logLevel == "all" {
+		if printToStdout {
 			fmt.Println("\nUnzipping...")
 		}
-		if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, logLevel != "all"); err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal(err)
-			}
+		if err := helpers.Unzip(tempFilePath, outputDir, ignoreSubdirs, ignoreCover, !printToStdout); err != nil {
+			return err
 		}
 	} else {
 		zipName, err := helpers.GetZipName(tempFilePath)
 		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal(err)
-			}
+			return err
 		}
 
-		if logLevel == "all" {
+		if printToStdout {
 			fmt.Println(filepath.Clean(zipName))
 		}
 		outputFileDir := outputDir + string(os.PathSeparator) + filepath.Clean(zipName) + ".zip"
 		// temp file gets deleted later
 		if err := helpers.CopyFile(tempFilePath, outputFileDir); err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal(err)
-			}
+			return err
 		}
 
 	}
 
-	if logLevel == "all" {
+	if printToStdout {
 		fmt.Println("\nDone!")
 	}
+
+	return nil
 }
 
 func GetSlavartInviteId() (string, error) {
@@ -336,7 +326,8 @@ func InviteUserToJoinSlavart(sessionToken string) error {
 			"X-Session-Token": sessionToken,
 		},
 	)
-	if err != nil {
+	const userAlreadyInServerError = `unsuccessful request got http status code: 500, with a body of: {"type":"DatabaseError","operation":"insert_one","with":"server_members"}`
+	if err != nil && err.Error() != userAlreadyInServerError {
 		return err
 	}
 
