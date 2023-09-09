@@ -35,7 +35,6 @@ func JsonApiRequest(method, url string, responseWriter any, data, headers map[st
 	if !(response.StatusCode >= 200 && response.StatusCode <= 299) {
 		var body = bytes.NewBuffer([]byte{})
 		io.Copy(body, response.Body)
-
 		return fmt.Errorf("unsuccessful request got http status code: %d, with a body of: %s", response.StatusCode, body.String())
 	}
 
@@ -44,4 +43,24 @@ func JsonApiRequest(method, url string, responseWriter any, data, headers map[st
 	}
 
 	return nil
+}
+
+func CaptureRedirectRequest(method, url string, headers map[string]string) (string, error) {
+	request, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	for key, value := range headers {
+		request.Header.Set(key, value)
+	}
+
+	client := http.Client{}
+
+	response, err := client.Do(request)
+	if err != nil {
+		return "", err
+	}
+
+	return response.Request.URL.String(), nil
 }

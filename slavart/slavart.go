@@ -17,12 +17,17 @@ import (
 )
 
 const (
-	Api = "https://api.divolt.xyz"
+	Api            = "https://api.divolt.xyz"
+	InviteRedirect = "https://slavart.divolt.xyz"
 
 	RequestChannel = "01G9AZ9AMWDV227YA7FQ5RV8WB"
 	UploadChannel  = "01G9AZ9Q2R5VEGVPQ4H99C01YP"
+	BotId          = "01G9824MQPGD7GVYR0F6A6GJ2Q"
+)
 
-	SlavartBotId = "01G9824MQPGD7GVYR0F6A6GJ2Q"
+var (
+	DownloadLinkInUploadMessageRegex = regexp.MustCompile(`(?m)Your requested link\, (.*)\, is now available for download:\n \*\*Download Link\*\*\n (.*)`)
+	DivoltInviteIdFromInviteUrlRegex = regexp.MustCompile(`https://divolt\.xyz.invite/(.*)`)
 )
 
 var AllowedHosts = []string{
@@ -57,7 +62,7 @@ func GetBotOnlineStatus(sessionToken string) (bool, error) {
 
 	err := common.JsonApiRequest(
 		http.MethodGet,
-		Api+"/users/"+SlavartBotId,
+		Api+"/users/"+BotId,
 		&serverMemberResponse,
 		map[string]string{},
 		map[string]string{
@@ -169,10 +174,8 @@ func CheckForErrorMessageInRequestMessages(requestMessageId string, messages []R
 
 // see if we can find an upload message for the link we want (even if its for another user)
 func SearchForDownloadLinkInUploadMessages(link string, messages []RevoltMessage) (string, bool) {
-	regex := regexp.MustCompile(`(?m)Your requested link\, (.*)\, is now available for download:\n \*\*Download Link\*\*\n (.*)`)
-
 	for _, revoltMessage := range messages {
-		matches := regex.FindAllStringSubmatch(revoltMessage.Embeds[0].Description, -1)[0]
+		matches := DownloadLinkInUploadMessageRegex.FindAllStringSubmatch(revoltMessage.Embeds[0].Description, -1)[0]
 
 		if matches[1] == link {
 			return matches[2], true
@@ -306,4 +309,14 @@ func DownloadUrl(url, sessionToken, logLevel string, quality int, timeoutTime ti
 	if logLevel == "all" {
 		fmt.Println("\nDone!")
 	}
+}
+
+func GetSlavartInviteId() (string, error) {
+	redirectUrl, err := common.CaptureRedirectRequest("GET", InviteRedirect, nil)
+	if err != nil {
+		return "", err
+	}
+
+	matches := DivoltInviteIdFromInviteUrlRegex.FindAllStringSubmatch(redirectUrl, -1)
+	return matches[0][1], nil
 }
