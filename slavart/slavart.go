@@ -312,11 +312,33 @@ func DownloadUrl(url, sessionToken, logLevel string, quality int, timeoutTime ti
 }
 
 func GetSlavartInviteId() (string, error) {
-	redirectUrl, err := common.CaptureRedirectRequest("GET", InviteRedirect, nil)
+	redirectUrl, err := common.CaptureRedirectRequest(http.MethodGet, InviteRedirect, nil)
 	if err != nil {
 		return "", err
 	}
 
 	matches := DivoltInviteIdFromInviteUrlRegex.FindAllStringSubmatch(redirectUrl, -1)
 	return matches[0][1], nil
+}
+
+func InviteUserToJoinSlavart(sessionToken string) error {
+	inviteId, err := GetSlavartInviteId()
+	if err != nil {
+		return err
+	}
+
+	err = common.JsonApiRequest(
+		http.MethodPost,
+		Api+"/invites/"+inviteId,
+		nil,
+		nil,
+		map[string]string{
+			"X-Session-Token": sessionToken,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
