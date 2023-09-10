@@ -73,50 +73,52 @@ export default function QueueTab(props) {
             case "finished": stackToUse = finishedRows; break
         }
 
-        const [ buttonOpen, buttonHandlers ] = useDisclosure(false)
+        if (stackToUse != undefined) {
+            const [ buttonOpen, buttonHandlers ] = useDisclosure(false)
 
-        stackToUse.push(
-            <UnstyledButton sx={buttonStyle} onClick={buttonHandlers.toggle}>
-                <Group>
-                    <Text>{url.url}</Text> 
-                    <ActionIcon variant="filled" sx={cancelButtonStyle} ml="auto" color="red" onClick={handleCancel(i)}>
-                        <HiMiniTrash size="16"/>
-                    </ActionIcon>
-                </Group>
-
-                <Collapse in={buttonOpen} transitionDuration={300} animateOpacity={true}>
+            stackToUse.push(
+                <UnstyledButton sx={buttonStyle} onClick={buttonHandlers.toggle}>
                     <Group>
-                        <Stack spacing={3} sx={stackStyle}>
-                            <Text size="sm" span c="dimmed">Ignore Errors:</Text>
-                            <Text size="sm" span c="dimmed">Ignore Cover:</Text>
-                            <Text size="sm" span c="dimmed">Ignore Subdirectories:</Text>
-                            <Text size="sm" span c="dimmed">Skip Unzipping:</Text>
-                            <Text size="sm" span c="dimmed">Skip URL Checking:</Text>
-                            <Text size="sm" span c="dimmed">Dry Run:</Text>
-                            <Text size="sm" span c="dimmed">Output Directory:</Text>
-                            <Text size="sm" span c="dimmed">Quality:</Text>
-                            <Text size="sm" span c="dimmed">Timeout:</Text>
-                            <Text size="sm" span c="dimmed">Cooldown:</Text>
-                        </Stack>
-
-                        <Group grow>
-                            <Stack spacing={3} sx={stackStyle}>
-                                <Checkbox size="xs" checked={url.settings.ignoreErrs} sx={checkboxStyle}/>
-                                <Checkbox size="xs" checked={url.settings.ignoreCover} sx={checkboxStyle}/>
-                                <Checkbox size="xs" checked={url.settings.ignoreSubDirs} sx={checkboxStyle}/>
-                                <Checkbox size="xs" checked={url.settings.skipUnzip} sx={checkboxStyle}/>
-                                <Checkbox size="xs" checked={url.settings.skipUrlChecking} sx={checkboxStyle}/>
-                                <Checkbox size="xs" checked={url.settings.dryRun} sx={checkboxStyle}/>
-                                <Text size="sm" span>{url.settings.outputDir}</Text>
-                                <Text size="sm" span>{qualities[url.settings.quality]}</Text>
-                                <Text size="sm" span>{url.settings.timeout} Seconds</Text>
-                                <Text size="sm" span>{url.settings.cooldown} Seconds</Text>
-                            </Stack>
-                        </Group>
+                        <Text>{url.url}</Text> 
+                        <ActionIcon variant="filled" sx={cancelButtonStyle} ml="auto" color="red" onClick={handleCancel(i)}>
+                            <HiMiniTrash size="16"/>
+                        </ActionIcon>
                     </Group>
-                </Collapse>
-            </UnstyledButton>
-        )
+    
+                    <Collapse in={buttonOpen} transitionDuration={300} animateOpacity={true}>
+                        <Group>
+                            <Stack spacing={3} sx={stackStyle}>
+                                <Text size="sm" span c="dimmed">Ignore Errors:</Text>
+                                <Text size="sm" span c="dimmed">Ignore Cover:</Text>
+                                <Text size="sm" span c="dimmed">Ignore Subdirectories:</Text>
+                                <Text size="sm" span c="dimmed">Skip Unzipping:</Text>
+                                <Text size="sm" span c="dimmed">Skip URL Checking:</Text>
+                                <Text size="sm" span c="dimmed">Dry Run:</Text>
+                                <Text size="sm" span c="dimmed">Output Directory:</Text>
+                                <Text size="sm" span c="dimmed">Quality:</Text>
+                                <Text size="sm" span c="dimmed">Timeout:</Text>
+                                <Text size="sm" span c="dimmed">Cooldown:</Text>
+                            </Stack>
+    
+                            <Group grow>
+                                <Stack spacing={3} sx={stackStyle}>
+                                    <Checkbox size="xs" checked={url.settings.ignoreErrs} sx={checkboxStyle}/>
+                                    <Checkbox size="xs" checked={url.settings.ignoreCover} sx={checkboxStyle}/>
+                                    <Checkbox size="xs" checked={url.settings.ignoreSubDirs} sx={checkboxStyle}/>
+                                    <Checkbox size="xs" checked={url.settings.skipUnzip} sx={checkboxStyle}/>
+                                    <Checkbox size="xs" checked={url.settings.skipUrlChecking} sx={checkboxStyle}/>
+                                    <Checkbox size="xs" checked={url.settings.dryRun} sx={checkboxStyle}/>
+                                    <Text size="sm" span>{url.settings.outputDir}</Text>
+                                    <Text size="sm" span>{qualities[url.settings.quality]}</Text>
+                                    <Text size="sm" span>{url.settings.timeout} Seconds</Text>
+                                    <Text size="sm" span>{url.settings.cooldown} Seconds</Text>
+                                </Stack>
+                            </Group>
+                        </Group>
+                    </Collapse>
+                </UnstyledButton>
+            )
+        }
     }
 
     if (startedRows.length === 0) {

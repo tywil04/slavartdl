@@ -87,17 +87,22 @@ func (s *SlavartdlUI) Login(email, password string) bool {
 		runtime.LogError(s.ctx, err.Error())
 		return false
 	}
+
+	if err := slavart.InviteUserToJoinSlavart(s.sessionToken); err != nil {
+		runtime.LogError(s.ctx, err.Error())
+		return false
+	}
+
 	return true
 }
 
-func (s *SlavartdlUI) DownloadUrl(url, outputDir string, quality, timeout, cooldown int, skipUnzip, ignoreCover, ignoreSubdirs bool) {
+func (s *SlavartdlUI) DownloadUrl(url, outputDir string, quality, timeout, cooldown int, skipUnzip, ignoreCover, ignoreSubdirs bool) bool {
 	timeoutTime := time.Now().Add(time.Duration(timeout) * time.Second)
 	cooldownDuration := time.Duration(cooldown) * time.Second
 
-	slavart.DownloadUrl(
+	err := slavart.DownloadUrl(
 		url,
 		s.sessionToken,
-		"silent",
 		quality,
 		timeoutTime,
 		cooldownDuration,
@@ -105,5 +110,12 @@ func (s *SlavartdlUI) DownloadUrl(url, outputDir string, quality, timeout, coold
 		skipUnzip,
 		ignoreCover,
 		ignoreSubdirs,
+		false,
 	)
+	if err != nil {
+		runtime.LogError(s.ctx, err.Error())
+		return false
+	}
+
+	return true
 }

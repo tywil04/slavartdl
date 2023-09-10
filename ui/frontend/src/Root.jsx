@@ -1,17 +1,18 @@
 import { render } from 'preact'
 import { useState } from 'preact/hooks';
-import { useUrlQueue } from "./hooks/hooks.js"
+import { useQueue } from "./hooks/queueHook.js"
 import { MantineProvider, ColorSchemeProvider, TypographyStylesProvider, Tooltip } from '@mantine/core';
 import { Tabs } from '@mantine/core';
-import { HiMiniArrowDownTray, HiMiniCog6Tooth, HiMiniQueueList } from "react-icons/hi2"
+import { HiMiniArrowDownTray, HiMiniArrowRightOnRectangle, HiMiniCog6Tooth, HiMiniQueueList } from "react-icons/hi2"
 import { Notifications } from "@mantine/notifications"
 import DownloadTab from './tabs/DownloadTab.jsx';
 import QueueTab from './tabs/QueueTab.jsx';
 import SettingsTab from './tabs/SettingsTab.jsx';
+import LoginTab from './tabs/LoginTab.jsx';
 
 
 export default function Root() {
-    const [ queue, queueHandlers ] = useUrlQueue([])
+    const [ queue, queueHandlers ] = useQueue([])
     const [ colorScheme, setColorScheme ] = useState("dark")
 
 
@@ -75,8 +76,12 @@ export default function Root() {
                 <TypographyStylesProvider>
                     <Notifications position="top-center"/>
                     
-                    <Tabs defaultValue="download" variant="pills" styles={tabsStyle}>
+                    <Tabs defaultValue="login" variant="pills" styles={tabsStyle}>
                         <Tabs.List>
+                            <Tooltip label="Login" withArrow position="right">
+                                <Tabs.Tab value="login" icon={<HiMiniArrowRightOnRectangle size="16"/>}/>
+                            </Tooltip>
+
                             <Tooltip label="Download" withArrow position="right">
                                 <Tabs.Tab value="download" icon={<HiMiniArrowDownTray size="16"/>}/>
                             </Tooltip>
@@ -89,6 +94,10 @@ export default function Root() {
                                 <Tabs.Tab value="settings" icon={<HiMiniCog6Tooth size="16"/>}/>
                             </Tooltip>
                         </Tabs.List>
+
+                        <Tabs.Panel value="login">
+                            <LoginTab/>
+                        </Tabs.Panel>
 
                         <Tabs.Panel value="download">
                             <DownloadTab queue={queue} queueHandlers={queueHandlers}/>

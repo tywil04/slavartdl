@@ -8,12 +8,9 @@ import { HiMiniCheck, HiMiniExclamationTriangle } from 'react-icons/hi2';
 
 
 export default function DownloadTab(props) {
-    const [ ignoreErrs, setIgnoreErrs ] = useInputState(false)
     const [ skipUnzip, setSkipUnzip ] = useInputState(false)
     const [ ignoreCover, setIgnoreCover ] = useInputState(false)
     const [ ignoreSubDirs, setIgnoreSubDirs ] = useInputState(false)
-    const [ skipUrlChecking, setSkipUrlChecking ] = useInputState(false)
-    const [ dryRun, setDryRun ] = useInputState(false)
     const [ outputDir, setOutputDir ] = useInputState("")
     const [ quality, setQuality ] = useInputState(0)
     const [ timeout, setTimeout ] = useInputState(120)
@@ -29,25 +26,12 @@ export default function DownloadTab(props) {
         const trimmedUrls = rawUrls.map((url) => url.trim())
         const filteredUrls = trimmedUrls.filter((url) => {
             if (url.length === 0) {
+                // remove this "url" because its actually an empty line, no need to throw error though
                 return false
             }
 
-            if (!skipUrlChecking) {
-                let parsedUrl 
-                try {
-                    parsedUrl = new URL(url)
-                } catch {
-                    errorWhileFiltering = true
-                    notifications.show({
-                        title: "Error",
-                        message: "A non-URL was found, aborting.",
-                        color: "red",
-                        icon: <HiMiniExclamationTriangle size="16"/>,
-                    })
-
-                    return false
-                }
-
+            try {
+                const parsedUrl = new URL(url)
                 if (!allowed.includes(parsedUrl.hostname)) {
                     errorWhileFiltering = true
                     notifications.show({
@@ -56,29 +40,37 @@ export default function DownloadTab(props) {
                         color: "red",
                         icon: <HiMiniExclamationTriangle size="16"/>,
                     })
-
                     return false
                 }
+            } catch {
+                errorWhileFiltering = true
+                notifications.show({
+                    title: "Error",
+                    message: "A non-URL was found, aborting.",
+                    color: "red",
+                    icon: <HiMiniExclamationTriangle size="16"/>,
+                })
+                return false
             }
 
+            // no errors were encountered, so include url
             return true
         })
 
         if (errorWhileFiltering) {
+            // if there was a significant error while filtering, the message would have been shown we just need to finish this function call
             return
         }
 
         if (filteredUrls.length === 0) {
             setUrls("")
             textareaRef.current.focus()
-
             notifications.show({
                 title: "Error",
                 message: "No URLs found.",
                 color: "red",
                 icon: <HiMiniExclamationTriangle size="16"/>,
             })
-
             return
         }
 
@@ -90,17 +82,13 @@ export default function DownloadTab(props) {
                 color: "red",
                 icon: <HiMiniExclamationTriangle size="16"/>,
             })
-
             return
         }
 
         props.queueHandlers.appendBatch(filteredUrls, {
-            ignoreErrs,
             skipUnzip,
             ignoreCover,
             ignoreSubDirs,
-            skipUrlChecking,
-            dryRun,
             outputDir,
             quality,
             timeout,
@@ -170,14 +158,6 @@ export default function DownloadTab(props) {
                 <Text size="xs" tt="uppercase" c="dimmed">Bool Options</Text>
 
                 <SimpleGrid cols={3} spacing="lg">
-                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(ignoreErrs, setIgnoreErrs)}>
-                        <Checkbox 
-                            label="Ignore Errors" 
-                            description="If an error occurs while downloading a URL, should the error be ignored."
-                            checked={ignoreErrs}
-                        />
-                    </Card>
-
                     <Card sx={checkboxCardStyle} onClick={handleCheckbox(skipUnzip, setSkipUnzip)}>
                         <Checkbox 
                             label="Skip Unzipping" 
@@ -199,22 +179,6 @@ export default function DownloadTab(props) {
                             label="Ignore Sub Directories" 
                             description="If unzipping, should sub directories be ignored or extracted." 
                             checked={ignoreSubDirs} 
-                        />
-                    </Card>
-
-                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(skipUrlChecking, setSkipUrlChecking)}>
-                        <Checkbox 
-                            label="Skip Checking URLs" 
-                            description="Skip checking every URL against known compatible hosts for slavart." 
-                            checked={skipUrlChecking} 
-                        />
-                    </Card>
-
-                    <Card sx={checkboxCardStyle} onClick={handleCheckbox(dryRun, setDryRun)}>
-                        <Checkbox 
-                            label="Dry Run" 
-                            description="The zip file collected won't be downloaded but all other systems run." 
-                            checked={dryRun} 
                         />
                     </Card>
                 </SimpleGrid>
