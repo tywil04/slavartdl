@@ -41,11 +41,11 @@ var configListCredentialsCmd = &cobra.Command{
 				if ok {
 					fmt.Printf("[%d]: Email = %s, Password = %s\n", index, sliceMap["email"], sliceMap["password"])
 				} else {
-					return fmt.Errorf("an unknown error has occured")
+					return fmt.Errorf("an unknown error has occurred")
 				}
 			}
 		} else {
-			return fmt.Errorf("an unknown error has occured")
+			return fmt.Errorf("an unknown error has occurred")
 		}
 
 		return nil

@@ -18,7 +18,7 @@ import (
 	"github.com/minio/selfupdate"
 )
 
-const Version = "v1.1.11"
+const Version = "v1.1.15"
 
 const assetNameTemplate = "slavartdl-%s-%s-%s.%s"
 const signatureNameTemplate = "slavartdl-%s-%s-%s.%s.md5"
@@ -51,7 +51,7 @@ func parseVersionTag(version string) (int, int, int, error) {
 	return major, minor, patch, nil
 }
 
-// checks if there is a new update avaiable, if there is it updates
+// checks if there is a new update available, if there is it updates
 func Update(force bool) (string, error) {
 	releasesResponse := struct {
 		TagName string `json:"tag_name"`
@@ -165,7 +165,7 @@ func Update(force bool) (string, error) {
 			if strings.Contains(header.Name, "slavartdl") {
 				if err := selfupdate.Apply(tarball, selfupdate.Options{}); err != nil {
 					if err := selfupdate.RollbackError(err); err != nil {
-						return "", fmt.Errorf("an unknown error has occured while updating")
+						return "", fmt.Errorf("an unknown error has occurred while updating")
 					}
 				}
 
@@ -188,7 +188,7 @@ func Update(force bool) (string, error) {
 
 				if err := selfupdate.Apply(zipFile, selfupdate.Options{}); err != nil {
 					if err := selfupdate.RollbackError(err); err != nil {
-						return "", fmt.Errorf("an unknown error has occured while updating")
+						return "", fmt.Errorf("an unknown error has occurred while updating")
 					}
 				}
 

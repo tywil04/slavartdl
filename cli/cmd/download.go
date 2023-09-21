@@ -181,36 +181,47 @@ var downloadCmd = &cobra.Command{
 		// randomly select a session token to avoid using the same account all the time
 		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
 		loginCredentialsInterface := viper.Get("divoltlogincredentials")
+		loginCredentials := loginCredentialsInterface.([]any)
 
 		session := divolt.Session{}
 
-		switch rand.Intn(1) {
-		case 0:
-			credentials := loginCredentialsInterface.([]any)
+		numberOfSessionTokens := len(sessionTokens)
+		numberOfLoginCredentials := len(loginCredentials)
 
+		randomlySelectedSource := -1
+		if numberOfSessionTokens > 0 && numberOfLoginCredentials > 0 {
+			randomlySelectedSource = rand.Intn(2)
+		} else if numberOfSessionTokens > 0 && numberOfLoginCredentials == 0 {
+			randomlySelectedSource = 1
+		} else if numberOfSessionTokens == 0 && numberOfLoginCredentials > 0 {
+			randomlySelectedSource = 0
+		}
+
+		switch randomlySelectedSource {
+		case 0:
 			var selectedCredential int
-			length := len(credentials)
-			if length == 1 {
+			if numberOfLoginCredentials == 1 {
 				selectedCredential = 0
 			} else {
-				selectedCredential = rand.Intn(length)
+				selectedCredential = rand.Intn(numberOfLoginCredentials)
 			}
 
-			credential := credentials[selectedCredential].(map[string]string)
+			credential := loginCredentials[selectedCredential].(map[string]string)
 			err := session.AuthenticateWithCredentials(credential["email"], credential["password"])
 			helpers.LogError(err, logLevel)
 		case 1:
 			var selectedToken int
-			length := len(sessionTokens)
-			if length == 1 {
+			if numberOfSessionTokens == 1 {
 				selectedToken = 0
 			} else {
-				selectedToken = rand.Intn(length)
+				selectedToken = rand.Intn(numberOfSessionTokens)
 			}
 
 			token := sessionTokens[selectedToken]
 			err := session.AuthenticateWithSessionToken(token)
 			helpers.LogError(err, logLevel)
+		default:
+			helpers.ManualLogError("no source to authenticated with divolt", logLevel)
 		}
 
 		for _, url := range args {
@@ -250,11 +261,11 @@ func init() {
 	flags := downloadCmd.Flags()
 
 	flags.StringP("outputDir", "o", "", "the output directory to store the downloaded music")
-	flags.StringP("fromFile", "f", "", "the path to a text file to read urls from, urls must be seperated by a newline")
+	flags.StringP("fromFile", "f", "", "the path to a text file to read urls from, urls must be separated by a newline")
 	downloadCmd.MarkFlagDirname("outputDir")
 	downloadCmd.MarkFlagDirname("fromFile")
 
-	flags.BoolP("fromStdin", "s", false, "should urls be read from standard input, urls must be seperated by a newline")
+	flags.BoolP("fromStdin", "s", false, "should urls be read from standard input, urls must be separated by a newline")
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 

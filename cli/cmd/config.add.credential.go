@@ -47,7 +47,7 @@ var configAddCredentialCmd = &cobra.Command{
 				"password": args[1],
 			})
 		} else {
-			return fmt.Errorf("an unknown error has occured")
+			return fmt.Errorf("an unknown error has occurred")
 		}
 
 		viper.Set("divoltlogincredentials", credentialsSlice)

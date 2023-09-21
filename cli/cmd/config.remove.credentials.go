@@ -47,7 +47,7 @@ var configRemoveCredentialsCmd = &cobra.Command{
 				}
 			}
 		} else {
-			return fmt.Errorf("an unknown error has occured")
+			return fmt.Errorf("an unknown error has occurred")
 		}
 
 		resultingCredentials := []any{}
