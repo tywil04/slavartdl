@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"errors"
 	"log"
 	"math/rand"
 	"net/url"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -13,8 +13,11 @@ import (
 
 	"github.com/tywil04/slavartdl/cli/internal/config"
 	"github.com/tywil04/slavartdl/cli/internal/helpers"
-	"github.com/tywil04/slavartdl/slavart"
+	"github.com/tywil04/slavartdl/divolt"
+	"github.com/tywil04/slavartdl/downloader"
 )
+
+const pathSeperator = string(os.PathSeparator)
 
 var downloadCmd = &cobra.Command{
 	Use:          "download [flags] url(s)",
@@ -22,15 +25,15 @@ var downloadCmd = &cobra.Command{
 	Long:         "Download music from url using SlavArt Divolt server (Supports: Tidal, Qobuz, SoundCloud, Deezer, Spotify, YouTube and Jiosaavn)",
 	Args:         cobra.ArbitraryArgs,
 	SilenceUsage: true,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRun: func(cmd *cobra.Command, args []string) {
 		for _, arg := range args {
 			parsedUrl, err := url.ParseRequestURI(arg)
 			if err != nil {
-				return err
+				log.Fatal(err.Error())
 			}
 
 			allowed := false
-			for _, host := range slavart.AllowedHosts {
+			for _, host := range divolt.SlavartAllowedHosts {
 				if host == parsedUrl.Host {
 					allowed = true
 					break
@@ -38,11 +41,9 @@ var downloadCmd = &cobra.Command{
 			}
 
 			if !allowed {
-				return errors.New("host not allowed")
+				log.Fatal("host not allowed")
 			}
 		}
-
-		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		flags := cmd.Flags()
@@ -50,12 +51,12 @@ var downloadCmd = &cobra.Command{
 		// optional
 		configPathRel, err := flags.GetString("configPath")
 		if err != nil {
-			log.Fatal("unknown error when getting '--configPath'")
+			log.Fatal(err)
 		}
 
 		configPath, err := filepath.Abs(configPathRel)
 		if err != nil {
-			log.Fatal("failed to resolve relative 'configPath' into absolute path")
+			log.Fatal(err)
 		}
 
 		// load config
@@ -65,11 +66,7 @@ var downloadCmd = &cobra.Command{
 
 		// optional
 		logLevel, err := flags.GetString("logLevel")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--logLevel'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		if logLevel == "" {
 			logLevel = viper.GetString("downloadcmd.loglevel")
@@ -80,59 +77,31 @@ var downloadCmd = &cobra.Command{
 			logLevel = "all"
 		}
 
-		if logLevel != "all" && logLevel != "errors" && logLevel != "silent" {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("'--logLevel' should be one of 'all', 'errors' or 'silent'")
-			}
-		}
-
 		// required
 		outputDirRel, err := flags.GetString("outputDir")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--outputDir'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		if outputDirRel == "" {
 			outputDirRel = viper.GetString("downloadcmd.outputdir")
 			if outputDirRel == "" {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal("no outputDir provided in config or '--outputDir'")
-				}
+				helpers.ManualLogError("no outputDir provided in config or '--outputDir'", logLevel)
 			}
 		}
 
 		outputDir, err := filepath.Abs(outputDirRel)
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("failed to resolve relative 'outputDir' into absolute path")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		// optional
 		fromFile, err := flags.GetString("fromFile")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--fromFile'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		// optional
 		fromStdin, err := flags.GetBool("fromStdin")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--fromStdin'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		// optional
 		quality, err := flags.GetInt("quality")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--quality'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		if quality == 0 {
 			quality = viper.GetInt("downloadcmd.quality")
@@ -143,28 +112,20 @@ var downloadCmd = &cobra.Command{
 
 		// optional
 		timeout, err := flags.GetInt("timeout")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--timeout'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		if timeout == 0 {
 			timeout = viper.GetInt("downloadcmd.timeout")
 		}
 
 		if timeout == 0 {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("total timeout is 0, unable to continue")
-			}
+			helpers.ManualLogError("total timeout is 0, unable to continue", logLevel)
 		}
 
 		// optional
 		cooldown, err := flags.GetInt("cooldown")
 		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--cooldown'")
-			}
+			helpers.ManualLogError("unknown error when getting '--cooldown'", logLevel)
 		}
 
 		if cooldown == 0 {
@@ -173,11 +134,7 @@ var downloadCmd = &cobra.Command{
 
 		// optional
 		ignoreCover, err := flags.GetBool("ignoreCover")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--ignoreCover'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		if !ignoreCover {
 			ignoreCover = viper.GetBool("downloadcmd.ignore.cover")
@@ -185,11 +142,7 @@ var downloadCmd = &cobra.Command{
 
 		// optional
 		ignoreSubdirs, err := flags.GetBool("ignoreSubdirs")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--ignoreSubdirs'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		if !ignoreSubdirs {
 			ignoreSubdirs = viper.GetBool("downloadcmd.ignore.subdirs")
@@ -197,108 +150,93 @@ var downloadCmd = &cobra.Command{
 
 		// optional
 		skipUnzip, err := flags.GetBool("skipUnzip")
-		if err != nil {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("unknown error when getting '--skipUnzip'")
-			}
-		}
+		helpers.LogError(err, logLevel)
 
 		if !skipUnzip {
 			skipUnzip = viper.GetBool("downloadcmd.skip.unzip")
 		}
 
-		timeoutTime := time.Now().Add(time.Second * time.Duration(timeout))
+		timeoutTime := time.Second * time.Duration(timeout)
 		cooldownDuration := time.Second * time.Duration(cooldown)
 
 		if fromFile != "" {
 			// if a file is provided, add the urls to the list to be processed
 			urls, err := helpers.GetUrlsFromFile(fromFile)
-			if err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal("failed to read urls from file")
-				}
-			}
+			helpers.LogError(err, logLevel)
 			args = append(args, urls...)
 		}
 
 		if fromStdin {
 			// if told to read from stdin
 			urls, err := helpers.GetUrlsFromStdin()
-			if err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal("failed to read urls from stdin")
-				}
-			}
+			helpers.LogError(err, logLevel)
 			args = append(args, urls...)
 		}
 
 		// this is now required because args dont have to be passed just via the cli anymore
 		if len(args) == 0 {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("no urls to download")
-			}
+			helpers.ManualLogError("no urls to download", logLevel)
 		}
 
 		// randomly select a session token to avoid using the same account all the time
-		var sessionToken string
 		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
 		loginCredentialsInterface := viper.Get("divoltlogincredentials")
 
-		if loginCredentials, ok := loginCredentialsInterface.([]any); ok {
-			for _, credentialAny := range loginCredentials {
-				// if any issue is encountered skip these credentials
+		session := divolt.Session{}
 
-				credential, ok := credentialAny.(map[string]any)
-				if !ok {
-					continue
-				}
+		switch rand.Intn(1) {
+		case 0:
+			credentials := loginCredentialsInterface.([]any)
 
-				emailInterface, ok := credential["email"]
-				if !ok {
-					continue
-				}
-
-				email, ok := emailInterface.(string)
-				if !ok {
-					continue
-				}
-
-				passwordInterface, ok := credential["password"]
-				if !ok {
-					continue
-				}
-
-				password, ok := passwordInterface.(string)
-				if !ok {
-					continue
-				}
-
-				token, err := slavart.GetSessionTokenFromCredentials(email, password)
-				if err != nil {
-					continue
-				}
-
-				sessionTokens = append(sessionTokens, token)
+			var selectedCredential int
+			length := len(credentials)
+			if length == 1 {
+				selectedCredential = 0
+			} else {
+				selectedCredential = rand.Intn(length)
 			}
-		}
 
-		length := len(sessionTokens)
-		if length == 0 {
-			if logLevel == "all" || logLevel == "errors" {
-				log.Fatal("no session tokens found in config")
+			credential := credentials[selectedCredential].(map[string]string)
+			err := session.AuthenticateWithCredentials(credential["email"], credential["password"])
+			helpers.LogError(err, logLevel)
+		case 1:
+			var selectedToken int
+			length := len(sessionTokens)
+			if length == 1 {
+				selectedToken = 0
+			} else {
+				selectedToken = rand.Intn(length)
 			}
-		} else if length == 1 {
-			sessionToken = sessionTokens[0]
-		} else {
-			sessionToken = sessionTokens[rand.Intn(length)]
+
+			token := sessionTokens[selectedToken]
+			err := session.AuthenticateWithSessionToken(token)
+			helpers.LogError(err, logLevel)
 		}
 
 		for _, url := range args {
-			err = slavart.DownloadUrl(url, sessionToken, quality, timeoutTime, cooldownDuration, outputDir, skipUnzip, ignoreCover, ignoreSubdirs, logLevel == "all")
-			if err != nil {
-				if logLevel == "all" || logLevel == "errors" {
-					log.Fatal(err)
-				}
+			status, err := session.SlavartGetBotStatus()
+			helpers.LogError(err, logLevel)
+
+			if status == divolt.SlavartBotStatusOffline {
+				helpers.ManualLogError("slavart bot is offline", logLevel)
+			}
+
+			message, err := session.SlavartSendDownloadCommand(url, quality)
+			helpers.LogError(err, logLevel)
+
+			musicUrl, err := session.SlavartGetUploadUrl(message.Id, url, timeoutTime)
+			helpers.LogError(err, logLevel)
+
+			buffer, bytesWritten, err := downloader.DownloadFile(musicUrl)
+			helpers.LogError(err, logLevel)
+
+			if !skipUnzip {
+				err := downloader.Unzip(buffer, bytesWritten, outputDir, ignoreSubdirs, ignoreCover)
+				helpers.LogError(err, logLevel)
+			} else {
+				outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
+				err := downloader.CopyFile(buffer, outputPath)
+				helpers.LogError(err, logLevel)
 			}
 
 			if url != args[len(args)-1] {

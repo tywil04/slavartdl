@@ -7,6 +7,7 @@ import (
 	"compress/gzip"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 	"strings"
 
 	"github.com/minio/selfupdate"
-	"github.com/tywil04/slavartdl/common"
 )
 
 const Version = "v1.1.11"
@@ -61,16 +61,11 @@ func Update(force bool) (string, error) {
 		} `json:"assets"`
 	}{}
 
-	err := common.JsonApiRequest(
-		http.MethodGet,
-		"https://api.github.com/repos/tywil04/slavartdl/releases/latest",
-		&releasesResponse,
-		nil,
-		nil,
-	)
+	response, err := http.Get("https://api.github.com/repos/tywil04/slavartdl/releases/latest")
 	if err != nil {
 		return "", err
 	}
+	json.NewDecoder(response.Body).Decode(&releasesResponse)
 
 	apiMajor, apiMinor, apiPatch, err := parseVersionTag(releasesResponse.TagName)
 	if err != nil {

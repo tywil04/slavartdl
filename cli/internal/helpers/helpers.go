@@ -3,6 +3,7 @@ package helpers
 import (
 	"bufio"
 	"io"
+	"log"
 	"os"
 	"strings"
 )
@@ -44,4 +45,18 @@ func GetUrlsFromStdin() ([]string, error) {
 	}
 
 	return urls, nil
+}
+
+func LogError(err error, logLevel string) {
+	if err != nil {
+		if logLevel == "all" || logLevel == "errors" {
+			log.Fatal(err)
+		}
+	}
+}
+
+func ManualLogError(message, logLevel string) {
+	if logLevel == "all" || logLevel == "errors" {
+		log.Fatal(message)
+	}
 }
