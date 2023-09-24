@@ -18,7 +18,7 @@ import (
 	"github.com/tywil04/slavartdl/downloader"
 )
 
-const pathSeperator = string(os.PathSeparator)
+const pathSeparator = string(os.PathSeparator)
 
 var downloadCmd = &cobra.Command{
 	Use:          "download [flags] url(s)",
@@ -271,7 +271,7 @@ var downloadCmd = &cobra.Command{
 				} else {
 					helpers.Println("[DIVOLT]: Starting copy...", logLevel)
 
-					outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
+					outputPath := outputDir + pathSeparator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
 					err := downloader.CopyFile(buffer, outputPath)
 					helpers.LogError(err, logLevel)
 
@@ -366,7 +366,7 @@ var downloadCmd = &cobra.Command{
 				} else {
 					helpers.Println("[DISCORD]: Starting copy...", logLevel)
 
-					outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
+					outputPath := outputDir + pathSeparator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
 					err := downloader.CopyFile(buffer, outputPath)
 					helpers.LogError(err, logLevel)
 
