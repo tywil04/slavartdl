@@ -3,16 +3,16 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configAddTokensCmd = &cobra.Command{
-	Use:          "tokens [flags] token(s)",
-	Short:        "Adds session token(s) to config",
+var configRemoveDivoltCredentialsCmd = &cobra.Command{
+	Use:          "divoltCredentials [flags] credentialIndex(s)",
+	Short:        "Removes divolt credential(s) using index shown by the list command",
 	SilenceUsage: true,
 	Args:         cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -34,25 +34,39 @@ var configAddTokensCmd = &cobra.Command{
 			return err
 		}
 
-		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
+		credentials := viper.Get("divoltlogincredentials")
 
-		for _, arg := range args {
-			arg = strings.TrimSpace(arg)
-			if arg != "" && arg != "<DELETED>" {
-				sessionTokens = append(sessionTokens, arg)
+		credentialsSlice, ok := credentials.([]any)
+		if ok {
+			for index := range credentialsSlice {
+				for _, arg := range args {
+					argNumber, err := strconv.Atoi(arg)
+					if err == nil && argNumber == index {
+						credentialsSlice[index] = "<DELETED>"
+					}
+				}
+			}
+		} else {
+			return fmt.Errorf("an unknown error has occurred")
+		}
+
+		resultingCredentials := []any{}
+		for _, token := range credentialsSlice {
+			if token != "<DELETED>" {
+				resultingCredentials = append(resultingCredentials, token)
 			}
 		}
 
-		viper.Set("divoltsessiontokens", sessionTokens)
+		viper.Set("divoltlogincredentials", resultingCredentials)
 
 		return config.Offload()
 	},
 }
 
 func init() {
-	flags := configAddTokensCmd.Flags()
+	flags := configRemoveDivoltCredentialsCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configAddCmd.AddCommand(configAddTokensCmd)
+	configRemoveCmd.AddCommand(configRemoveDivoltCredentialsCmd)
 }

@@ -3,18 +3,18 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configRemoveTokensCmd = &cobra.Command{
-	Use:          "tokens [flags] tokenIndex(s)",
-	Short:        "Removes session token(s) using index shown by the list command",
+var configAddDivoltCredentialCmd = &cobra.Command{
+	Use:          "divoltCredential [flags] email password",
+	Short:        "Adds divolt credential token to config",
 	SilenceUsage: true,
-	Args:         cobra.MinimumNArgs(1),
+	Args:         cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
@@ -34,34 +34,32 @@ var configRemoveTokensCmd = &cobra.Command{
 			return err
 		}
 
-		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-
-		for index := range sessionTokens {
-			for _, arg := range args {
-				argNumber, err := strconv.Atoi(arg)
-				if err == nil && argNumber == index {
-					sessionTokens[index] = "<DELETED>"
-				}
-			}
+		if len(args) != 2 {
+			return fmt.Errorf("not enough arguments provided")
 		}
 
-		resultingSessionTokens := []string{}
-		for _, token := range sessionTokens {
-			if token != "<DELETED>" {
-				resultingSessionTokens = append(resultingSessionTokens, token)
-			}
+		credentials := viper.Get("divoltlogincredentials")
+
+		credentialsSlice, ok := credentials.([]any)
+		if ok {
+			credentialsSlice = append(credentialsSlice, map[string]string{
+				"email":    args[0],
+				"password": args[1],
+			})
+		} else {
+			return fmt.Errorf("an unknown error has occurred")
 		}
 
-		viper.Set("divoltsessiontokens", resultingSessionTokens)
+		viper.Set("divoltlogincredentials", credentialsSlice)
 
 		return config.Offload()
 	},
 }
 
 func init() {
-	flags := configRemoveTokensCmd.Flags()
+	flags := configAddDivoltCredentialCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configRemoveCmd.AddCommand(configRemoveTokensCmd)
+	configAddCmd.AddCommand(configAddDivoltCredentialCmd)
 }

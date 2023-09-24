@@ -3,18 +3,16 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configRemoveCredentialsCmd = &cobra.Command{
-	Use:          "credentials [flags] credentialIndex(s)",
-	Short:        "Removes credential(s) using index shown by the list command",
-	SilenceUsage: true,
-	Args:         cobra.MinimumNArgs(1),
+var configListDiscordCredentialsCmd = &cobra.Command{
+	Use:   "discordCredentials [flags]",
+	Short: "Lists stored discord credentials",
+	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
@@ -34,39 +32,30 @@ var configRemoveCredentialsCmd = &cobra.Command{
 			return err
 		}
 
-		credentials := viper.Get("divoltlogincredentials")
+		credentials := viper.Get("discordlogincredentials")
 
 		credentialsSlice, ok := credentials.([]any)
 		if ok {
-			for index := range credentialsSlice {
-				for _, arg := range args {
-					argNumber, err := strconv.Atoi(arg)
-					if err == nil && argNumber == index {
-						credentialsSlice[index] = "<DELETED>"
-					}
+			for index, slice := range credentialsSlice {
+				sliceMap, ok := slice.(map[string]any)
+				if ok {
+					fmt.Printf("[%d]: Email = %s, Password = %s\n", index, sliceMap["email"], sliceMap["password"])
+				} else {
+					return fmt.Errorf("an unknown error has occurred")
 				}
 			}
 		} else {
 			return fmt.Errorf("an unknown error has occurred")
 		}
 
-		resultingCredentials := []any{}
-		for _, token := range credentialsSlice {
-			if token != "<DELETED>" {
-				resultingCredentials = append(resultingCredentials, token)
-			}
-		}
-
-		viper.Set("divoltlogincredentials", resultingCredentials)
-
-		return config.Offload()
+		return nil
 	},
 }
 
 func init() {
-	flags := configRemoveCredentialsCmd.Flags()
+	flags := configListDiscordCredentialsCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configRemoveCmd.AddCommand(configRemoveCredentialsCmd)
+	configListCmd.AddCommand(configListDiscordCredentialsCmd)
 }

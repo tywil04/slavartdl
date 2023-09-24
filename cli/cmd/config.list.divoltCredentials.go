@@ -9,9 +9,9 @@ import (
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configListTokensCmd = &cobra.Command{
-	Use:   "tokens [flags]",
-	Short: "Lists stored session tokens",
+var configListDivoltCredentialsCmd = &cobra.Command{
+	Use:   "divoltCredentials [flags]",
+	Short: "Lists stored divolt credentials",
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
@@ -32,10 +32,20 @@ var configListTokensCmd = &cobra.Command{
 			return err
 		}
 
-		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
+		credentials := viper.Get("divoltlogincredentials")
 
-		for index, token := range sessionTokens {
-			fmt.Printf("[%d]: %s\n", index, token)
+		credentialsSlice, ok := credentials.([]any)
+		if ok {
+			for index, slice := range credentialsSlice {
+				sliceMap, ok := slice.(map[string]any)
+				if ok {
+					fmt.Printf("[%d]: Email = %s, Password = %s\n", index, sliceMap["email"], sliceMap["password"])
+				} else {
+					return fmt.Errorf("an unknown error has occurred")
+				}
+			}
+		} else {
+			return fmt.Errorf("an unknown error has occurred")
 		}
 
 		return nil
@@ -43,9 +53,9 @@ var configListTokensCmd = &cobra.Command{
 }
 
 func init() {
-	flags := configListTokensCmd.Flags()
+	flags := configListDivoltCredentialsCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configListCmd.AddCommand(configListTokensCmd)
+	configListCmd.AddCommand(configListDivoltCredentialsCmd)
 }

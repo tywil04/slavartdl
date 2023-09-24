@@ -3,16 +3,18 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
-var configListCredentialsCmd = &cobra.Command{
-	Use:   "credentials [flags]",
-	Short: "Lists stored credentials",
-	Args:  cobra.ExactArgs(0),
+var configAddDiscordTokensCmd = &cobra.Command{
+	Use:          "discordTokens [flags] token(s)",
+	Short:        "Adds discord session token(s) to config",
+	SilenceUsage: true,
+	Args:         cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
@@ -32,30 +34,25 @@ var configListCredentialsCmd = &cobra.Command{
 			return err
 		}
 
-		credentials := viper.Get("divoltlogincredentials")
+		sessionTokens := viper.GetStringSlice("discordsessiontokens")
 
-		credentialsSlice, ok := credentials.([]any)
-		if ok {
-			for index, slice := range credentialsSlice {
-				sliceMap, ok := slice.(map[string]any)
-				if ok {
-					fmt.Printf("[%d]: Email = %s, Password = %s\n", index, sliceMap["email"], sliceMap["password"])
-				} else {
-					return fmt.Errorf("an unknown error has occurred")
-				}
+		for _, arg := range args {
+			arg = strings.TrimSpace(arg)
+			if arg != "" && arg != "<DELETED>" {
+				sessionTokens = append(sessionTokens, arg)
 			}
-		} else {
-			return fmt.Errorf("an unknown error has occurred")
 		}
 
-		return nil
+		viper.Set("discordsessiontokens", sessionTokens)
+
+		return config.Offload()
 	},
 }
 
 func init() {
-	flags := configListCredentialsCmd.Flags()
+	flags := configAddDiscordTokensCmd.Flags()
 
 	flags.StringP("configPath", "C", "", "a directory that contains an override config.json file\nor a file which contains an override config\n[a custom config file must end in .json]")
 
-	configListCmd.AddCommand(configListCredentialsCmd)
+	configAddCmd.AddCommand(configAddDiscordTokensCmd)
 }
