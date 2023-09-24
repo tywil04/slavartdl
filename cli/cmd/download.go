@@ -264,21 +264,49 @@ var downloadCmd = &cobra.Command{
 			// use discord
 
 			sessionTokens := viper.GetStringSlice("discordsessiontokens")
+			loginCredentialsInterface := viper.Get("discordlogincredentials")
+			loginCredentials := loginCredentialsInterface.([]any)
 
 			session := discord.Session{}
 
 			numberOfSessionTokens := len(sessionTokens)
+			numberOfLoginCredentials := len(loginCredentials)
 
-			var selectedToken int
-			if numberOfSessionTokens == 1 {
-				selectedToken = 0
-			} else {
-				selectedToken = rand.Intn(numberOfSessionTokens)
+			randomlySelectedSource := -1
+			if numberOfSessionTokens > 0 && numberOfLoginCredentials > 0 {
+				randomlySelectedSource = rand.Intn(2)
+			} else if numberOfSessionTokens > 0 && numberOfLoginCredentials == 0 {
+				randomlySelectedSource = 1
+			} else if numberOfSessionTokens == 0 && numberOfLoginCredentials > 0 {
+				randomlySelectedSource = 0
 			}
 
-			token := sessionTokens[selectedToken]
-			err := session.AuthenticateWithAuthorizationToken(token)
-			helpers.LogError(err, logLevel)
+			switch randomlySelectedSource {
+			case 0:
+				var selectedCredential int
+				if numberOfLoginCredentials == 1 {
+					selectedCredential = 0
+				} else {
+					selectedCredential = rand.Intn(numberOfLoginCredentials)
+				}
+
+				credential := loginCredentials[selectedCredential].(map[string]string)
+				err := session.AuthenticateWithCredentials(credential["email"], credential["password"])
+				helpers.LogError(err, logLevel)
+			case 1:
+				var selectedToken int
+				if numberOfSessionTokens == 1 {
+					selectedToken = 0
+				} else {
+					selectedToken = rand.Intn(numberOfSessionTokens)
+				}
+
+				token := sessionTokens[selectedToken]
+				err := session.AuthenticateWithAuthorizationToken(token)
+				helpers.LogError(err, logLevel)
+			default:
+				helpers.ManualLogError("no source to authenticated with discord", logLevel)
+			}
 
 			for _, url := range args {
 				message, err := session.PixeldrainSendDownloadCommand(url, quality)
