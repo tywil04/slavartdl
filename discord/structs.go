@@ -199,3 +199,12 @@ type SocketMessageCreate struct {
 }
 
 type SocketMessageUpdate SocketMessageCreate
+
+type Login struct {
+	UserId       string `json:"user_id"`
+	Token        string `json:"string"`
+	UserSettings struct {
+		Locale string `json:"locale"`
+		Theme  string `json:"theme"`
+	} `json:"user_settings"`
+}

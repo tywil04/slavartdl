@@ -7,35 +7,35 @@ import (
 	"net/http"
 )
 
-// func (s *Session) AuthenticateWithCredentials(email, password string) error {
-// 	if s.sessionToken != "" {
-// 		return errors.New("you have already authenticated. if you want to change the sessionToken, please logout then login again")
-// 	}
+func (s *Session) AuthenticateWithCredentials(email, password string) error {
+	if s.authorizationToken != "" {
+		return errors.New("you have already authenticated. if you want to change the authorizationToken, please logout then login again")
+	}
 
-// 	loginResponse := Login{}
+	loginResponse := Login{}
 
-// 	payload := fmt.Sprintf(`{"email":"%s", "password":"%s", "friendly_name": "Slavartdl"}`, email, password)
+	payload := fmt.Sprintf(`{"login":"%s", "password":"%s"}`, email, password)
 
-// 	err := s.UnauthenticatedRequest(
-// 		http.MethodPost,
-// 		"/auth/session/login",
-// 		bytes.NewBufferString(payload),
-// 		&loginResponse,
-// 	)
-// 	if err != nil {
-// 		return err
-// 	}
+	err := s.UnauthenticatedRequest(
+		http.MethodPost,
+		"/auth/login",
+		bytes.NewBufferString(payload),
+		&loginResponse,
+	)
+	if err != nil {
+		return err
+	}
 
-// 	s.sessionToken = loginResponse.Token
-// 	s.userId = loginResponse.UserId
+	s.authorizationToken = loginResponse.Token
+	s.userId = loginResponse.UserId
 
-// 	s.socket, err = s.OpenAuthenticatedSocket()
-// 	if err != nil {
-// 		return err
-// 	}
+	s.socket, err = s.OpenAuthenticatedSocket()
+	if err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 func (s *Session) AuthenticateWithAuthorizationToken(authorizationToken string) error {
 	if s.authorizationToken != "" {
