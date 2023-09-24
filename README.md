@@ -1,9 +1,13 @@
-# Slavart Downloader
-This is a simple tool written in Go(lang) to download music using the SlavArt Divolt server. This tool was inspired by [https://github.com/D0otDo0t/slavolt-scraper](https://github.com/D0otDo0t/slavolt-scraper), however I choose to write my own tool because I noticed there were inefficiencies in how the download link was collected.
+# SlavartDL
+[![Go Report Card](https://goreportcard.com/badge/github.com/tywil04/slavartdl)](https://goreportcard.com/report/github.com/tywil04/slavartdl)
 
-I created this tool for educational purposes and I do not condone any form of piracy.
+This repo contains a command line tool, and a desktop application (WIP) which allows you to download music from the SlavArt Divolt server or the Pixeldrain Discord server. 
+
+This tool was originally inspired by [slavart-scraper](https://github.com/D0otDo0t/slavolt-scraper), however I choose to write my own tool because I noticed there were inefficiencies in how the download link was collected.
 
 You can find pre-build versions in the releases section.
+
+I created this tool for educational purposes and I do not condone any form of piracy.
 
 ## Usage
 Just run the executable for your system. There are prebuild executables for Windows, Linux and MacOS (darwin). Linux and MacOS have arm compatible versions.
@@ -115,6 +119,11 @@ Follows these steps to get a session token:
 - Find and select a request named `login` with a request url of `https://discord.com/api/v9/auth/login`.
 - Select the response tab and copy the value of `token`.
 
+### Similar Tools
+- [`Limestone`](https://github.com/dxbednarczyk/limestone)
+- [`slavart-scraper`](https://github.com/D0otDo0t/slavolt-scraper)
+
+If you want to see a comparison, have a look at this [table](https://github.com/dxbednarczyk/limestone#comparison) from the creator of `limestone`.
 
 ## Building CLI
 To build the command line application you need to have Go(lang) installed. Once installed run the following commands:
