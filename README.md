@@ -98,7 +98,8 @@ As a note, the structure of `"downloadcmd.timeout"` has changed, its now an int 
     "loglevel": string,
     "quality": int,
     "timeout": int,
-    "cooldown": int
+    "cooldown": int,
+    "useDiscord": bool
   }
 }
 ```

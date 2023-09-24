@@ -20,11 +20,12 @@ var DefaultStructure = map[string]any{
 	"discordsessiontokens":    []any{},
 	"discordlogincredentials": []map[string]any{},
 	"downloadcmd": map[string]any{
-		"outputdir": "",
-		"loglevel":  "all",
-		"quality":   0,
-		"timeout":   120,
-		"cooldown":  0,
+		"useDiscord": false,
+		"outputdir":  "",
+		"loglevel":   "all",
+		"quality":    0,
+		"timeout":    120,
+		"cooldown":   0,
 		"ignore": map[string]any{
 			"cover":   false,
 			"subdirs": false,
@@ -119,16 +120,6 @@ func updateInterfaceToAny(key string, defaultMap map[string]any, newValue any) {
 	}
 }
 
-func updateTimeoutStructure() {
-	// update old timeout structure to new structure
-	timeoutOld := map[string]any{
-		"seconds": 0,
-		"minutes": 2,
-	}
-	timeoutNew := DefaultStructure["downloadcmd"].(map[string]any)["timeout"].(int)
-	updateInterfaceToAny("downloadcmd.timeout", timeoutOld, timeoutNew)
-}
-
 func UpdateStructure() {
 	for key, value := range DefaultStructure {
 		if !viper.IsSet(key) {
@@ -136,8 +127,21 @@ func UpdateStructure() {
 		}
 	}
 
+	for key, value := range DefaultStructure["downloadcmd"].(map[string]any) {
+		realKey := "downloadcmd." + key
+		if !viper.IsSet(realKey) {
+			viper.Set(realKey, value)
+		}
+	}
+
 	// manual updates
-	updateTimeoutStructure()
+	// update old timeout structure to new structure
+	timeoutOld := map[string]any{
+		"seconds": 0,
+		"minutes": 2,
+	}
+	timeoutNew := DefaultStructure["downloadcmd"].(map[string]any)["timeout"].(int)
+	updateInterfaceToAny("downloadcmd.timeout", timeoutOld, timeoutNew)
 
 	Offload()
 }

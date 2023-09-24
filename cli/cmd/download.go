@@ -160,8 +160,13 @@ var downloadCmd = &cobra.Command{
 		timeoutTime := time.Second * time.Duration(timeout)
 		cooldownDuration := time.Second * time.Duration(cooldown)
 
+		// optional
 		useDiscord, err := flags.GetBool("useDiscord")
 		helpers.LogError(err, logLevel)
+
+		if !useDiscord {
+			useDiscord = viper.GetBool("downloadcmd.useDiscord")
+		}
 
 		if fromFile != "" {
 			// if a file is provided, add the urls to the list to be processed
