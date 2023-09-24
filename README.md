@@ -154,8 +154,9 @@ go build -o slavartdl cli/main.go
 | Credential storage | ✅ | ✅ | ✅ |
 | Session token storage | ✅ | ✅ | ❌ |
 | Self-update | ❌ | ✅ | ❌ |
-| Websocket to avoid large REST payloads | ✅ | ✅ | ❌
-
-[^1]: The graphical UI is still a work in progress
+| Websocket to avoid large REST payloads | ✅ | ✅[^2] | ❌
 
 The idea for this comparison was inspired from [`limestone`](https://github.com/dxbednarczyk/limestone#comparison). I have only added to it to better reflect the features that each tool offers!
+
+[^1]: The graphical UI is still a work in progress
+[^2]: As of version v1.1.16, versions before used large REST payloads
