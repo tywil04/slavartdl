@@ -203,6 +203,8 @@ var downloadCmd = &cobra.Command{
 				randomlySelectedSource = 0
 			}
 
+			helpers.Println("[DIVOLT]: Starting authentication...", logLevel)
+
 			switch randomlySelectedSource {
 			case 0:
 				var selectedCredential int
@@ -230,6 +232,10 @@ var downloadCmd = &cobra.Command{
 				helpers.ManualLogError("no source to authenticated with divolt", logLevel)
 			}
 
+			helpers.Println("[DIVOLT]: Successfully authenticated!", logLevel)
+
+			session.SlavartTryInviteUser()
+
 			for _, url := range args {
 				status, err := session.SlavartGetBotStatus()
 				helpers.LogError(err, logLevel)
@@ -241,20 +247,38 @@ var downloadCmd = &cobra.Command{
 				message, err := session.SlavartSendDownloadCommand(url, quality)
 				helpers.LogError(err, logLevel)
 
+				helpers.Println("[DIVOLT]: Sent download command for "+url+".", logLevel)
+				helpers.Println("[DIVOLT]: Waiting for download url...", logLevel)
+
 				musicUrl, err := session.SlavartGetUploadUrl(message.Id, url, timeoutTime)
 				helpers.LogError(err, logLevel)
+
+				helpers.Println("[DIVOLT]: Successfully fetched download url!", logLevel)
+				helpers.Println("[DIVOLT]: Starting download...", logLevel)
 
 				buffer, bytesWritten, err := downloader.DownloadFile(musicUrl)
 				helpers.LogError(err, logLevel)
 
+				helpers.Println("[DIVOLT]: Successfully downloaded music archive!", logLevel)
+
 				if !skipUnzip {
+					helpers.Println("[DIVOLT]: Starting unzip...", logLevel)
+
 					err := downloader.Unzip(buffer, bytesWritten, outputDir, ignoreSubdirs, ignoreCover)
 					helpers.LogError(err, logLevel)
+
+					helpers.Println("[DIVOLT]: Successfully unzipped music archive into download location!", logLevel)
 				} else {
+					helpers.Println("[DIVOLT]: Starting copy...", logLevel)
+
 					outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
 					err := downloader.CopyFile(buffer, outputPath)
 					helpers.LogError(err, logLevel)
+
+					helpers.Println("[DIVOLT]: Successfully copied music archive into download location!", logLevel)
 				}
+
+				helpers.Println("[DIVOLT]: Successfully downloaded "+url+".", logLevel)
 
 				if url != args[len(args)-1] {
 					time.Sleep(cooldownDuration)
@@ -280,6 +304,8 @@ var downloadCmd = &cobra.Command{
 			} else if numberOfSessionTokens == 0 && numberOfLoginCredentials > 0 {
 				randomlySelectedSource = 0
 			}
+
+			helpers.Println("[DISCORD]: Starting authentication...", logLevel)
 
 			switch randomlySelectedSource {
 			case 0:
@@ -308,24 +334,46 @@ var downloadCmd = &cobra.Command{
 				helpers.ManualLogError("no source to authenticated with discord", logLevel)
 			}
 
+			helpers.Println("[DISCORD]: Successfully authenticated!", logLevel)
+
+			session.PixeldrainTryInviteUser()
+
 			for _, url := range args {
 				message, err := session.PixeldrainSendDownloadCommand(url, quality)
 				helpers.LogError(err, logLevel)
 
+				helpers.Println("[DISCORD]: Sent download command for "+url+".", logLevel)
+				helpers.Println("[DISCORD]: Waiting for download url...", logLevel)
+
 				musicUrl, err := session.PixeldrainGetUploadUrl(message.Id, url, timeoutTime)
 				helpers.LogError(err, logLevel)
+
+				helpers.Println("[DISCORD]: Successfully fetched download url!", logLevel)
+				helpers.Println("[DISCORD]: Starting download...", logLevel)
 
 				buffer, bytesWritten, err := downloader.DownloadFile(musicUrl)
 				helpers.LogError(err, logLevel)
 
+				helpers.Println("[DISCORD]: Successfully downloaded music archive!", logLevel)
+
 				if !skipUnzip {
+					helpers.Println("[DISCORD]: Starting unzip...", logLevel)
+
 					err := downloader.Unzip(buffer, bytesWritten, outputDir, ignoreSubdirs, ignoreCover)
 					helpers.LogError(err, logLevel)
+
+					helpers.Println("[DISCORD]: Successfully unzipped music archive into download location!", logLevel)
 				} else {
+					helpers.Println("[DISCORD]: Starting copy...", logLevel)
+
 					outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
 					err := downloader.CopyFile(buffer, outputPath)
 					helpers.LogError(err, logLevel)
+
+					helpers.Println("[DISCORD]: Successfully copied music archive into download location!", logLevel)
 				}
+
+				helpers.Println("[DISCORD]: Successfully downloaded "+url+".", logLevel)
 
 				if url != args[len(args)-1] {
 					time.Sleep(cooldownDuration)

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -45,6 +46,12 @@ func GetUrlsFromStdin() ([]string, error) {
 	}
 
 	return urls, nil
+}
+
+func Println(message, logLevel string) {
+	if logLevel == "all" {
+		fmt.Println(message)
+	}
 }
 
 func LogError(err error, logLevel string) {
