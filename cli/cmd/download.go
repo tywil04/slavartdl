@@ -13,6 +13,7 @@ import (
 
 	"github.com/tywil04/slavartdl/cli/internal/config"
 	"github.com/tywil04/slavartdl/cli/internal/helpers"
+	"github.com/tywil04/slavartdl/discord"
 	"github.com/tywil04/slavartdl/divolt"
 	"github.com/tywil04/slavartdl/downloader"
 )
@@ -159,6 +160,9 @@ var downloadCmd = &cobra.Command{
 		timeoutTime := time.Second * time.Duration(timeout)
 		cooldownDuration := time.Second * time.Duration(cooldown)
 
+		useDiscord, err := flags.GetBool("useDiscord")
+		helpers.LogError(err, logLevel)
+
 		if fromFile != "" {
 			// if a file is provided, add the urls to the list to be processed
 			urls, err := helpers.GetUrlsFromFile(fromFile)
@@ -178,38 +182,93 @@ var downloadCmd = &cobra.Command{
 			helpers.ManualLogError("no urls to download", logLevel)
 		}
 
-		// randomly select a session token to avoid using the same account all the time
-		sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-		loginCredentialsInterface := viper.Get("divoltlogincredentials")
-		loginCredentials := loginCredentialsInterface.([]any)
+		if !useDiscord {
+			// use divolt (default)
 
-		session := divolt.Session{}
+			sessionTokens := viper.GetStringSlice("divoltsessiontokens")
+			loginCredentialsInterface := viper.Get("divoltlogincredentials")
+			loginCredentials := loginCredentialsInterface.([]any)
 
-		numberOfSessionTokens := len(sessionTokens)
-		numberOfLoginCredentials := len(loginCredentials)
+			session := divolt.Session{}
 
-		randomlySelectedSource := -1
-		if numberOfSessionTokens > 0 && numberOfLoginCredentials > 0 {
-			randomlySelectedSource = rand.Intn(2)
-		} else if numberOfSessionTokens > 0 && numberOfLoginCredentials == 0 {
-			randomlySelectedSource = 1
-		} else if numberOfSessionTokens == 0 && numberOfLoginCredentials > 0 {
-			randomlySelectedSource = 0
-		}
+			numberOfSessionTokens := len(sessionTokens)
+			numberOfLoginCredentials := len(loginCredentials)
 
-		switch randomlySelectedSource {
-		case 0:
-			var selectedCredential int
-			if numberOfLoginCredentials == 1 {
-				selectedCredential = 0
-			} else {
-				selectedCredential = rand.Intn(numberOfLoginCredentials)
+			randomlySelectedSource := -1
+			if numberOfSessionTokens > 0 && numberOfLoginCredentials > 0 {
+				randomlySelectedSource = rand.Intn(2)
+			} else if numberOfSessionTokens > 0 && numberOfLoginCredentials == 0 {
+				randomlySelectedSource = 1
+			} else if numberOfSessionTokens == 0 && numberOfLoginCredentials > 0 {
+				randomlySelectedSource = 0
 			}
 
-			credential := loginCredentials[selectedCredential].(map[string]string)
-			err := session.AuthenticateWithCredentials(credential["email"], credential["password"])
-			helpers.LogError(err, logLevel)
-		case 1:
+			switch randomlySelectedSource {
+			case 0:
+				var selectedCredential int
+				if numberOfLoginCredentials == 1 {
+					selectedCredential = 0
+				} else {
+					selectedCredential = rand.Intn(numberOfLoginCredentials)
+				}
+
+				credential := loginCredentials[selectedCredential].(map[string]string)
+				err := session.AuthenticateWithCredentials(credential["email"], credential["password"])
+				helpers.LogError(err, logLevel)
+			case 1:
+				var selectedToken int
+				if numberOfSessionTokens == 1 {
+					selectedToken = 0
+				} else {
+					selectedToken = rand.Intn(numberOfSessionTokens)
+				}
+
+				token := sessionTokens[selectedToken]
+				err := session.AuthenticateWithSessionToken(token)
+				helpers.LogError(err, logLevel)
+			default:
+				helpers.ManualLogError("no source to authenticated with divolt", logLevel)
+			}
+
+			for _, url := range args {
+				status, err := session.SlavartGetBotStatus()
+				helpers.LogError(err, logLevel)
+
+				if status == divolt.SlavartBotStatusOffline {
+					helpers.ManualLogError("slavart bot is offline", logLevel)
+				}
+
+				message, err := session.SlavartSendDownloadCommand(url, quality)
+				helpers.LogError(err, logLevel)
+
+				musicUrl, err := session.SlavartGetUploadUrl(message.Id, url, timeoutTime)
+				helpers.LogError(err, logLevel)
+
+				buffer, bytesWritten, err := downloader.DownloadFile(musicUrl)
+				helpers.LogError(err, logLevel)
+
+				if !skipUnzip {
+					err := downloader.Unzip(buffer, bytesWritten, outputDir, ignoreSubdirs, ignoreCover)
+					helpers.LogError(err, logLevel)
+				} else {
+					outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
+					err := downloader.CopyFile(buffer, outputPath)
+					helpers.LogError(err, logLevel)
+				}
+
+				if url != args[len(args)-1] {
+					time.Sleep(cooldownDuration)
+				}
+			}
+		} else {
+			// use discord
+
+			sessionTokens := viper.GetStringSlice("discordsessiontokens")
+
+			session := discord.Session{}
+
+			numberOfSessionTokens := len(sessionTokens)
+
 			var selectedToken int
 			if numberOfSessionTokens == 1 {
 				selectedToken = 0
@@ -218,40 +277,31 @@ var downloadCmd = &cobra.Command{
 			}
 
 			token := sessionTokens[selectedToken]
-			err := session.AuthenticateWithSessionToken(token)
-			helpers.LogError(err, logLevel)
-		default:
-			helpers.ManualLogError("no source to authenticated with divolt", logLevel)
-		}
-
-		for _, url := range args {
-			status, err := session.SlavartGetBotStatus()
+			err := session.AuthenticateWithAuthorizationToken(token)
 			helpers.LogError(err, logLevel)
 
-			if status == divolt.SlavartBotStatusOffline {
-				helpers.ManualLogError("slavart bot is offline", logLevel)
-			}
-
-			message, err := session.SlavartSendDownloadCommand(url, quality)
-			helpers.LogError(err, logLevel)
-
-			musicUrl, err := session.SlavartGetUploadUrl(message.Id, url, timeoutTime)
-			helpers.LogError(err, logLevel)
-
-			buffer, bytesWritten, err := downloader.DownloadFile(musicUrl)
-			helpers.LogError(err, logLevel)
-
-			if !skipUnzip {
-				err := downloader.Unzip(buffer, bytesWritten, outputDir, ignoreSubdirs, ignoreCover)
+			for _, url := range args {
+				message, err := session.PixeldrainSendDownloadCommand(url, quality)
 				helpers.LogError(err, logLevel)
-			} else {
-				outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
-				err := downloader.CopyFile(buffer, outputPath)
-				helpers.LogError(err, logLevel)
-			}
 
-			if url != args[len(args)-1] {
-				time.Sleep(cooldownDuration)
+				musicUrl, err := session.PixeldrainGetUploadUrl(message.Id, url, timeoutTime)
+				helpers.LogError(err, logLevel)
+
+				buffer, bytesWritten, err := downloader.DownloadFile(musicUrl)
+				helpers.LogError(err, logLevel)
+
+				if !skipUnzip {
+					err := downloader.Unzip(buffer, bytesWritten, outputDir, ignoreSubdirs, ignoreCover)
+					helpers.LogError(err, logLevel)
+				} else {
+					outputPath := outputDir + pathSeperator + filepath.Clean("slavart-"+time.Now().String()) + ".zip"
+					err := downloader.CopyFile(buffer, outputPath)
+					helpers.LogError(err, logLevel)
+				}
+
+				if url != args[len(args)-1] {
+					time.Sleep(cooldownDuration)
+				}
 			}
 		}
 	},
@@ -277,6 +327,7 @@ func init() {
 	flags.BoolP("ignoreCover", "c", false, "ignore cover.jpg when unzipping downloaded music")
 	flags.BoolP("ignoreSubdirs", "d", false, "ignore subdirectories when unzipping downloaded music")
 	flags.BoolP("skipUnzip", "z", false, "skip unzipping downloaded music")
+	flags.BoolP("useDiscord", "D", false, "use of discord instead of divolt, requires discord session token being installed in config")
 
 	rootCmd.AddCommand(downloadCmd)
 }

@@ -17,6 +17,7 @@ var ConfigFile string
 var DefaultStructure = map[string]any{
 	"divoltsessiontokens":    []any{},
 	"divoltlogincredentials": []map[string]any{},
+	"discordsessiontokens":   []any{},
 	"downloadcmd": map[string]any{
 		"outputdir": "",
 		"loglevel":  "all",
