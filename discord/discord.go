@@ -14,7 +14,7 @@ func (s *Session) AuthenticateWithCredentials(email, password string) error {
 
 	loginResponse := Login{}
 
-	payload := fmt.Sprintf(`{"login":"%s", "password":"%s"}`, email, password)
+	payload := fmt.Sprintf(`{"login":"%s", "password":"%s", "undelete": false, "login_source": null, "gift_code_sku_id": null }`, email, password)
 
 	err := s.UnauthenticatedRequest(
 		http.MethodPost,

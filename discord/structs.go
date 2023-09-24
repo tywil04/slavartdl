@@ -202,7 +202,7 @@ type SocketMessageUpdate SocketMessageCreate
 
 type Login struct {
 	UserId       string `json:"user_id"`
-	Token        string `json:"string"`
+	Token        string `json:"token"`
 	UserSettings struct {
 		Locale string `json:"locale"`
 		Theme  string `json:"theme"`

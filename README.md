@@ -23,16 +23,22 @@ Heres a brief structure of the commands:
 ```
 slavartdl download url(s)
 slavartdl version
-slavartdl update                              # updates slavartdl
+slavartdl update                                         # updates slavartdl
 slavartdl config add
-slavartdl config add tokens token(s)
-slavartdl config add credential email password
+slavartdl config add divoltTokens token(s)
+slavartdl config add divoltCredential email password
+slavartdl config add discordTokens token(s)
+slavartdl config add discordCredential email password
 slavartdl config list
-slavartdl config list tokens
-slavartdl config list credentials
+slavartdl config list divoltTokens
+slavartdl config list divoltCredentials
+slavartdl config list discordTokens
+slavartdl config list discordCredentials
 slavartdl config remove
-slavartdl config remove tokens tokenIndex(s)  # tokenIndex is from the list command
-slavartdl config remove credential credentialIndex(s)
+slavartdl config remove divoltTokens tokenIndex(s)        # tokenIndex is from the list command
+slavartdl config remove divoltCredentials tokenIndex(s)   # tokenIndex is from the list command
+slavartdl config remove discordTokens tokenIndex(s)       # tokenIndex is from the list command
+slavartdl config remove discordCredentials tokenIndex(s)  # tokenIndex is from the list command
 ```
 
 ### Go installed?

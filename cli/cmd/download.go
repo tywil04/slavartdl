@@ -212,8 +212,8 @@ var downloadCmd = &cobra.Command{
 					selectedCredential = rand.Intn(numberOfLoginCredentials)
 				}
 
-				credential := loginCredentials[selectedCredential].(map[string]string)
-				err := session.AuthenticateWithCredentials(credential["email"], credential["password"])
+				credential := loginCredentials[selectedCredential].(map[string]any)
+				err := session.AuthenticateWithCredentials(credential["email"].(string), credential["password"].(string))
 				helpers.LogError(err, logLevel)
 			case 1:
 				var selectedToken int
@@ -290,8 +290,8 @@ var downloadCmd = &cobra.Command{
 					selectedCredential = rand.Intn(numberOfLoginCredentials)
 				}
 
-				credential := loginCredentials[selectedCredential].(map[string]string)
-				err := session.AuthenticateWithCredentials(credential["email"], credential["password"])
+				credential := loginCredentials[selectedCredential].(map[string]any)
+				err := session.AuthenticateWithCredentials(credential["email"].(string), credential["password"].(string))
 				helpers.LogError(err, logLevel)
 			case 1:
 				var selectedToken int
