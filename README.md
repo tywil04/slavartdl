@@ -58,6 +58,17 @@ As a note, the structure of `"downloadcmd.timeout"` has changed, its now an int 
 
 ```
 {
+  "discordlogincredentials": [
+    {
+      "email": string,
+      "password": string
+    }
+    ...
+  ],
+  "discordsessiontokens": [
+    string 
+    ...
+  ],
   "divoltlogincredentials": [
     {
       "email": string,
@@ -84,15 +95,26 @@ As a note, the structure of `"downloadcmd.timeout"` has changed, its now an int 
 ```
 You will require either at least one session token in `divoltsessiontokens` or at least one dictionary with an email and password in `divoltlogincredentials`. Both of these allow this tool to access your Divolt account which is required for this bot to function. Please don't use your main account!
 
-### Getting session tokens to add to config
+### Getting Divolt session tokens to add to config
 If you want to get your session token, its easy. Just note that once you get your session token, for it to remain active you must close the divolt tab and do not logout.
 
 Follows these steps to get a session token:
 - Log in to Divolt.
 - Open browser DevTools.
-- Navigate to the network tab and then select the 'XHR' filter.
-- Find and select a request with the domain of 'api.divolt.xyz'.
-- Select the header tab and copy the value of the x-session-token. If there is no x-session-token select another request.
+- Navigate to the network tab and then select the 'Fetch/XHR' filter.
+- Find and select a request with the domain of `api.divolt.xyz`.
+- Select the header tab and copy the value of the `X-Session-token` from the response headers. If there is no `X-Session-token` select another request.
+
+### Getting Discord session tokens to add to config
+If you want to get your session token, its easy. Just note that once you get your session token, for it to remain active you must close the discord tab and do not logout.
+
+Follows these steps to get a session token:
+- Log in to Discord.
+- Open browser DevTools.
+- Navigate to the network tab and then select the 'Fetch/XHR' filter.
+- Find and select a request named `login` with a request url of `https://discord.com/api/v9/auth/login`.
+- Select the response tab and copy the value of `token`.
+
 
 ## Building CLI
 To build the command line application you need to have Go(lang) installed. Once installed run the following commands:
