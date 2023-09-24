@@ -123,7 +123,24 @@ Follows these steps to get a session token:
 - [`Limestone`](https://github.com/dxbednarczyk/limestone)
 - [`slavart-scraper`](https://github.com/D0otDo0t/slavolt-scraper)
 
-If you want to see a comparison, have a look at this [table](https://github.com/dxbednarczyk/limestone#comparison) from the creator of `limestone`.
+#### Comparison
+|  | `limestone` | `slavartdl` | `slavolt-scraper` |
+|--|--|--|--|
+| Command-line | ✅ | ✅  | ❌ |
+| Terminal UI | ✅ | ❌ | ❌ |
+| Graphical UI | ❌ | ✅[^1] | ❌ |
+| Pixeldrain Discord Support | ❌ | ✅ | ❌
+| Slavart Website Support | ✅ | ❌ | ❌ |
+| Standard input support | ❌ | ✅ | ❌ |
+| Unzip downloaded tracks | ❌ | ✅ | ❌ |
+| Credential storage | ✅ | ✅ | ✅ |
+| Session token storage | ✅ | ✅ | ❌ |
+| Self-update | ❌ | ✅ | ❌ |
+| Websocket to avoid large REST payloads | ✅ | ✅ | ❌
+
+[^1]: The graphical UI is still a work in progress
+
+The idea for this comparison was inspired from [`limestone`](https://github.com/dxbednarczyk/limestone#comparison). I have only added to it to better reflect the features that each tool offers!
 
 ## Building CLI
 To build the command line application you need to have Go(lang) installed. Once installed run the following commands:
