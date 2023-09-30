@@ -30,12 +30,7 @@ func GetPaste(instance, id, key string) (string, error) {
 		return "", errors.New("unsuccessful http status code")
 	}
 
-	parsed := struct {
-		Id    string `json:"id"`
-		Adata []any  `json:"adata"`
-		Ct    string `json:"ct"`
-	}{}
-
+	parsed := Response{}
 	if err := json.NewDecoder(response.Body).Decode(&parsed); err != nil {
 		return "", err
 	}
