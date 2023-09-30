@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
@@ -19,18 +17,13 @@ var configAddDivoltCredentialCmd = &cobra.Command{
 		flags := cmd.Flags()
 
 		// optional
-		configPathRel, err := flags.GetString("configPath")
+		configPath, err := flags.GetString("configPath")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--configPath'")
-		}
-
-		configPath, err := filepath.Abs(configPathRel)
-		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'configPath' into absolute path")
+			return err
 		}
 
 		// load config
-		if err := config.Load(configPathRel == "", configPath); err != nil {
+		if err := config.OpenConfig(configPath); err != nil {
 			return err
 		}
 
@@ -38,21 +31,12 @@ var configAddDivoltCredentialCmd = &cobra.Command{
 			return fmt.Errorf("not enough arguments provided")
 		}
 
-		credentials := viper.Get("divoltlogincredentials")
+		config.Open.DivoltLoginCredentials = append(config.Open.DivoltLoginCredentials, &config.ConfigCredential{
+			Email:    args[0],
+			Password: args[1],
+		})
 
-		credentialsSlice, ok := credentials.([]any)
-		if ok {
-			credentialsSlice = append(credentialsSlice, map[string]string{
-				"email":    args[0],
-				"password": args[1],
-			})
-		} else {
-			return fmt.Errorf("an unknown error has occurred")
-		}
-
-		viper.Set("divoltlogincredentials", credentialsSlice)
-
-		return config.Offload()
+		return config.SaveConfig()
 	},
 }
 

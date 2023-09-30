@@ -1,12 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-	"path/filepath"
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
@@ -19,42 +16,35 @@ var configRemoveDiscordTokensCmd = &cobra.Command{
 		flags := cmd.Flags()
 
 		// optional
-		configPathRel, err := flags.GetString("configPath")
+		configPath, err := flags.GetString("configPath")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--configPath'")
-		}
-
-		configPath, err := filepath.Abs(configPathRel)
-		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'configPath' into absolute path")
-		}
-
-		// load config
-		if err := config.Load(configPathRel == "", configPath); err != nil {
 			return err
 		}
 
-		sessionTokens := viper.GetStringSlice("discordsessiontokens")
+		// load config
+		if err := config.OpenConfig(configPath); err != nil {
+			return err
+		}
 
-		for index := range sessionTokens {
+		for index := range config.Open.DiscordSessionTokens {
 			for _, arg := range args {
 				argNumber, err := strconv.Atoi(arg)
 				if err == nil && argNumber == index {
-					sessionTokens[index] = "<DELETED>"
+					config.Open.DiscordSessionTokens[index] = "<DELETED>"
 				}
 			}
 		}
 
 		resultingSessionTokens := []string{}
-		for _, token := range sessionTokens {
+		for _, token := range config.Open.DiscordSessionTokens {
 			if token != "<DELETED>" {
 				resultingSessionTokens = append(resultingSessionTokens, token)
 			}
 		}
 
-		viper.Set("discordsessiontokens", resultingSessionTokens)
+		config.Open.DiscordSessionTokens = resultingSessionTokens
 
-		return config.Offload()
+		return config.SaveConfig()
 	},
 }
 

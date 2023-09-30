@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/tywil04/slavartdl/cli/internal/config"
 	"github.com/tywil04/slavartdl/cli/internal/helpers"
@@ -50,18 +49,13 @@ var downloadCmd = &cobra.Command{
 		flags := cmd.Flags()
 
 		// optional
-		configPathRel, err := flags.GetString("configPath")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		configPath, err := filepath.Abs(configPathRel)
+		configPath, err := flags.GetString("configPath")
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		// load config
-		if err := config.Load(configPathRel == "", configPath); err != nil {
+		if err := config.OpenConfig(configPath); err != nil {
 			log.Fatal(err)
 		}
 
@@ -70,12 +64,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if logLevel == "" {
-			logLevel = viper.GetString("downloadcmd.loglevel")
-		}
-
-		if logLevel == "" {
-			// set default
-			logLevel = "all"
+			logLevel = config.Open.DownloadCmd.LogLevel
 		}
 
 		// required
@@ -83,7 +72,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if outputDirRel == "" {
-			outputDirRel = viper.GetString("downloadcmd.outputdir")
+			outputDirRel = config.Open.DownloadCmd.OutputDir
 			if outputDirRel == "" {
 				helpers.ManualLogError("no outputDir provided in config or '--outputDir'", logLevel)
 			}
@@ -105,7 +94,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if quality == 0 {
-			quality = viper.GetInt("downloadcmd.quality")
+			quality = config.Open.DownloadCmd.Quality
 		}
 
 		// normalise quality to the same scale as the slavart bot. if quality is -1 it gets ignored later on
@@ -116,7 +105,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if timeout == 0 {
-			timeout = viper.GetInt("downloadcmd.timeout")
+			timeout = config.Open.DownloadCmd.Timeout
 		}
 
 		if timeout == 0 {
@@ -130,7 +119,7 @@ var downloadCmd = &cobra.Command{
 		}
 
 		if cooldown == 0 {
-			cooldown = viper.GetInt("downloadcmd.cooldown")
+			cooldown = config.Open.DownloadCmd.Cooldown
 		}
 
 		// optional
@@ -138,7 +127,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if !ignoreCover {
-			ignoreCover = viper.GetBool("downloadcmd.ignore.cover")
+			ignoreCover = config.Open.DownloadCmd.Ignore.Cover
 		}
 
 		// optional
@@ -146,7 +135,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if !ignoreSubdirs {
-			ignoreSubdirs = viper.GetBool("downloadcmd.ignore.subdirs")
+			ignoreSubdirs = config.Open.DownloadCmd.Ignore.SubDirs
 		}
 
 		// optional
@@ -154,7 +143,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if !skipUnzip {
-			skipUnzip = viper.GetBool("downloadcmd.skip.unzip")
+			skipUnzip = config.Open.DownloadCmd.Skip.Unzip
 		}
 
 		timeoutTime := time.Second * time.Duration(timeout)
@@ -165,7 +154,7 @@ var downloadCmd = &cobra.Command{
 		helpers.LogError(err, logLevel)
 
 		if !useDiscord {
-			useDiscord = viper.GetBool("downloadcmd.useDiscord")
+			useDiscord = config.Open.DownloadCmd.UseDiscord
 		}
 
 		if fromFile != "" {
@@ -190,14 +179,10 @@ var downloadCmd = &cobra.Command{
 		if !useDiscord {
 			// use divolt (default)
 
-			sessionTokens := viper.GetStringSlice("divoltsessiontokens")
-			loginCredentialsInterface := viper.Get("divoltlogincredentials")
-			loginCredentials := loginCredentialsInterface.([]any)
-
 			session := divolt.Session{}
 
-			numberOfSessionTokens := len(sessionTokens)
-			numberOfLoginCredentials := len(loginCredentials)
+			numberOfSessionTokens := len(config.Open.DivoltSessionTokens)
+			numberOfLoginCredentials := len(config.Open.DivoltLoginCredentials)
 
 			randomlySelectedSource := -1
 			if numberOfSessionTokens > 0 && numberOfLoginCredentials > 0 {
@@ -219,8 +204,8 @@ var downloadCmd = &cobra.Command{
 					selectedCredential = rand.Intn(numberOfLoginCredentials)
 				}
 
-				credential := loginCredentials[selectedCredential].(map[string]any)
-				err := session.AuthenticateWithCredentials(credential["email"].(string), credential["password"].(string))
+				credential := config.Open.DivoltLoginCredentials[selectedCredential]
+				err := session.AuthenticateWithCredentials(credential.Email, credential.Password)
 				helpers.LogError(err, logLevel)
 			case 1:
 				var selectedToken int
@@ -230,7 +215,7 @@ var downloadCmd = &cobra.Command{
 					selectedToken = rand.Intn(numberOfSessionTokens)
 				}
 
-				token := sessionTokens[selectedToken]
+				token := config.Open.DivoltSessionTokens[selectedToken]
 				err := session.AuthenticateWithSessionToken(token)
 				helpers.LogError(err, logLevel)
 			default:
@@ -292,14 +277,10 @@ var downloadCmd = &cobra.Command{
 		} else {
 			// use discord
 
-			sessionTokens := viper.GetStringSlice("discordsessiontokens")
-			loginCredentialsInterface := viper.Get("discordlogincredentials")
-			loginCredentials := loginCredentialsInterface.([]any)
-
 			session := discord.Session{}
 
-			numberOfSessionTokens := len(sessionTokens)
-			numberOfLoginCredentials := len(loginCredentials)
+			numberOfSessionTokens := len(config.Open.DiscordSessionTokens)
+			numberOfLoginCredentials := len(config.Open.DiscordLoginCredentials)
 
 			randomlySelectedSource := -1
 			if numberOfSessionTokens > 0 && numberOfLoginCredentials > 0 {
@@ -321,8 +302,8 @@ var downloadCmd = &cobra.Command{
 					selectedCredential = rand.Intn(numberOfLoginCredentials)
 				}
 
-				credential := loginCredentials[selectedCredential].(map[string]any)
-				err := session.AuthenticateWithCredentials(credential["email"].(string), credential["password"].(string))
+				credential := config.Open.DiscordLoginCredentials[selectedCredential]
+				err := session.AuthenticateWithCredentials(credential.Email, credential.Password)
 				helpers.LogError(err, logLevel)
 			case 1:
 				var selectedToken int
@@ -332,7 +313,7 @@ var downloadCmd = &cobra.Command{
 					selectedToken = rand.Intn(numberOfSessionTokens)
 				}
 
-				token := sessionTokens[selectedToken]
+				token := config.Open.DiscordSessionTokens[selectedToken]
 				err := session.AuthenticateWithAuthorizationToken(token)
 				helpers.LogError(err, logLevel)
 			default:

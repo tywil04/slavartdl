@@ -1,147 +1,104 @@
 package config
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/spf13/viper"
 )
 
-var ConfigDir string
-var ConfigName string
-var ConfigFile string
+var Open *Config
+var openFilePath string
 
-var DefaultStructure = map[string]any{
-	"divoltsessiontokens":     []any{},
-	"divoltlogincredentials":  []map[string]any{},
-	"discordsessiontokens":    []any{},
-	"discordlogincredentials": []map[string]any{},
-	"downloadcmd": map[string]any{
-		"useDiscord": false,
-		"outputdir":  "",
-		"loglevel":   "all",
-		"quality":    0,
-		"timeout":    120,
-		"cooldown":   0,
-		"ignore": map[string]any{
-			"cover":   false,
-			"subdirs": false,
+const pathSeparator = string(os.PathSeparator)
+
+func defaultConfig() *Config {
+	return &Config{
+		DivoltSessionTokens:     []string{},
+		DivoltLoginCredentials:  []*ConfigCredential{},
+		DiscordSessionTokens:    []string{},
+		DiscordLoginCredentials: []*ConfigCredential{},
+		DownloadCmd: &ConfigDownloadCmd{
+			UseDiscord: false,
+			OutputDir:  "",
+			LogLevel:   "all",
+			Quality:    0,
+			Timeout:    120,
+			Cooldown:   0,
+			Ignore: &ConfigDownloadCmdIgnore{
+				Cover:   false,
+				SubDirs: false,
+			},
+			Skip: &ConfigDownloadCmdSkip{
+				Unzip: false,
+			},
 		},
-		"skip": map[string]any{
-			"unzip": false,
-		},
-	},
+	}
 }
 
-func Load(defaultHandling bool, customPath string) error {
-	// default handling means it uses the default config
-	if defaultHandling {
+func DefaultConfigLocation() (string, error) {
+	userConfigDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to find user config directory")
+	}
+	return userConfigDir + pathSeparator + "SlavartDL" + pathSeparator + "config.json", nil
+}
+
+func OpenConfig(customPath string) error {
+	filePath := customPath
+	if filePath == "" {
 		var err error
-		ConfigDir, err = os.UserConfigDir()
+		filePath, err = DefaultConfigLocation()
 		if err != nil {
-			return fmt.Errorf("failed to find user config directory")
-		}
-
-		ConfigName = "config.json"
-		ConfigDir += string(os.PathSeparator) + "SlavartDL"
-		ConfigFile = ConfigDir + string(os.PathSeparator) + ConfigName
-	} else {
-		fileInfo, err := os.Stat(customPath)
-		if err == nil && fileInfo.IsDir() {
-			// directory exists
-			ConfigName = "config.json"
-			ConfigDir = customPath
-			ConfigFile = ConfigDir + string(os.PathSeparator) + ConfigName
-		} else if err == nil || (err != nil && os.IsNotExist(err)) {
-			// either file does exist, or it doesnt
-			// if it doesnt exist viper will create it
-			dirName, fileName := filepath.Split(customPath)
-			ext := filepath.Ext(fileName)
-			if ext != ".json" {
-				return fmt.Errorf("custom config file must end in .json")
-			}
-
-			ConfigName = fileName
-			ConfigDir = dirName
-			ConfigFile = customPath
-		} else {
-			return fmt.Errorf("unknown error when handling custom config")
+			return err
 		}
 	}
 
-	// configure viper
-	viper.SetConfigName(ConfigName)
-	viper.SetConfigType("json")
-	viper.AddConfigPath(ConfigDir)
+	fileStat, err := os.Stat(filePath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
 
-	if err := viper.ReadInConfig(); err != nil {
-		// file not found
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			if err := os.Mkdir(ConfigDir, os.ModePerm); err != nil && !os.IsExist(err) {
-				return fmt.Errorf("failed to create user config directory")
-			}
+	if err == nil && fileStat.IsDir() {
+		filePath += pathSeparator + "/config.json"
+	}
 
-			defaultConfig, err := json.Marshal(DefaultStructure)
-			if err != nil {
-				return fmt.Errorf("failed to marshal default config")
-			}
+	dirPath := filepath.Dir(filePath)
+	if err := os.MkdirAll(dirPath, os.ModeDir); err != nil && !os.IsExist(err) {
+		return err
+	}
 
-			// load default config
-			if err := viper.ReadConfig(bytes.NewBuffer(defaultConfig)); err != nil {
-				return fmt.Errorf("failed to load default config")
-			}
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		return err
+	}
 
-			// write default config
-			if err := viper.WriteConfigAs(ConfigFile); err != nil {
-				return fmt.Errorf("failed to write default config")
-			}
+	config := &Config{}
+	if err := json.NewDecoder(file).Decode(config); err != nil {
+		if err.Error() == "EOF" {
+			config = defaultConfig()
 		} else {
-			// config was found but there was some other error
-			return fmt.Errorf("unknown error with config")
+			return err
 		}
 	}
 
-	UpdateStructure()
-
+	Open = config
+	openFilePath = filePath
 	return nil
 }
 
-func Offload() error {
-	return viper.WriteConfigAs(ConfigFile)
-}
-
-func updateInterfaceToAny(key string, defaultMap map[string]any, newValue any) {
-	value := viper.GetStringMap(key)
-	if fmt.Sprint(value) == fmt.Sprint(defaultMap) {
-		viper.Set(key, newValue)
+func SaveConfig() error {
+	file, err := os.OpenFile(openFilePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		return err
 	}
-}
+	defer file.Close()
 
-func UpdateStructure() {
-	for key, value := range DefaultStructure {
-		if !viper.IsSet(key) {
-			viper.Set(key, value)
-		}
+	jsonEncoder := json.NewEncoder(file)
+	jsonEncoder.SetIndent("", "    ")
+	if err := jsonEncoder.Encode(Open); err != nil {
+		return err
 	}
 
-	for key, value := range DefaultStructure["downloadcmd"].(map[string]any) {
-		realKey := "downloadcmd." + key
-		if !viper.IsSet(realKey) {
-			viper.Set(realKey, value)
-		}
-	}
-
-	// manual updates
-	// update old timeout structure to new structure
-	timeoutOld := map[string]any{
-		"seconds": 0,
-		"minutes": 2,
-	}
-	timeoutNew := DefaultStructure["downloadcmd"].(map[string]any)["timeout"].(int)
-	updateInterfaceToAny("downloadcmd.timeout", timeoutOld, timeoutNew)
-
-	Offload()
+	return nil
 }

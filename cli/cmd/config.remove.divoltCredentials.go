@@ -1,12 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-	"path/filepath"
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
@@ -19,47 +16,35 @@ var configRemoveDivoltCredentialsCmd = &cobra.Command{
 		flags := cmd.Flags()
 
 		// optional
-		configPathRel, err := flags.GetString("configPath")
+		configPath, err := flags.GetString("configPath")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--configPath'")
-		}
-
-		configPath, err := filepath.Abs(configPathRel)
-		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'configPath' into absolute path")
-		}
-
-		// load config
-		if err := config.Load(configPathRel == "", configPath); err != nil {
 			return err
 		}
 
-		credentials := viper.Get("divoltlogincredentials")
-
-		credentialsSlice, ok := credentials.([]any)
-		if ok {
-			for index := range credentialsSlice {
-				for _, arg := range args {
-					argNumber, err := strconv.Atoi(arg)
-					if err == nil && argNumber == index {
-						credentialsSlice[index] = "<DELETED>"
-					}
-				}
-			}
-		} else {
-			return fmt.Errorf("an unknown error has occurred")
+		// load config
+		if err := config.OpenConfig(configPath); err != nil {
+			return err
 		}
 
-		resultingCredentials := []any{}
-		for _, token := range credentialsSlice {
-			if token != "<DELETED>" {
+		for index := range config.Open.DivoltLoginCredentials {
+			for _, arg := range args {
+				argNumber, err := strconv.Atoi(arg)
+				if err == nil && argNumber == index {
+					config.Open.DivoltLoginCredentials[index] = nil
+				}
+			}
+		}
+
+		resultingCredentials := []*config.ConfigCredential{}
+		for _, token := range config.Open.DivoltLoginCredentials {
+			if token != nil {
 				resultingCredentials = append(resultingCredentials, token)
 			}
 		}
 
-		viper.Set("divoltlogincredentials", resultingCredentials)
+		config.Open.DivoltLoginCredentials = resultingCredentials
 
-		return config.Offload()
+		return config.SaveConfig()
 	},
 }
 

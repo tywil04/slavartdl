@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
@@ -17,35 +15,18 @@ var configListDivoltCredentialsCmd = &cobra.Command{
 		flags := cmd.Flags()
 
 		// optional
-		configPathRel, err := flags.GetString("configPath")
+		configPath, err := flags.GetString("configPath")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--configPath'")
-		}
-
-		configPath, err := filepath.Abs(configPathRel)
-		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'configPath' into absolute path")
-		}
-
-		// load config
-		if err := config.Load(configPathRel == "", configPath); err != nil {
 			return err
 		}
 
-		credentials := viper.Get("divoltlogincredentials")
+		// load config
+		if err := config.OpenConfig(configPath); err != nil {
+			return err
+		}
 
-		credentialsSlice, ok := credentials.([]any)
-		if ok {
-			for index, slice := range credentialsSlice {
-				sliceMap, ok := slice.(map[string]any)
-				if ok {
-					fmt.Printf("[%d]: Email = %s, Password = %s\n", index, sliceMap["email"], sliceMap["password"])
-				} else {
-					return fmt.Errorf("an unknown error has occurred")
-				}
-			}
-		} else {
-			return fmt.Errorf("an unknown error has occurred")
+		for index, credential := range config.Open.DivoltLoginCredentials {
+			fmt.Printf("[%d]: Email = %s, Password = %s\n", index, credential.Email, credential.Password)
 		}
 
 		return nil

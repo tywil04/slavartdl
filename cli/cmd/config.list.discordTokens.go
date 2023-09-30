@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tywil04/slavartdl/cli/internal/config"
 )
 
@@ -17,24 +15,17 @@ var configListDiscordTokensCmd = &cobra.Command{
 		flags := cmd.Flags()
 
 		// optional
-		configPathRel, err := flags.GetString("configPath")
+		configPath, err := flags.GetString("configPath")
 		if err != nil {
-			return fmt.Errorf("unknown error when getting '--configPath'")
-		}
-
-		configPath, err := filepath.Abs(configPathRel)
-		if err != nil {
-			return fmt.Errorf("failed to resolve relative 'configPath' into absolute path")
-		}
-
-		// load config
-		if err := config.Load(configPathRel == "", configPath); err != nil {
 			return err
 		}
 
-		sessionTokens := viper.GetStringSlice("discordsessiontokens")
+		// load config
+		if err := config.OpenConfig(configPath); err != nil {
+			return err
+		}
 
-		for index, token := range sessionTokens {
+		for index, token := range config.Open.DiscordSessionTokens {
 			fmt.Printf("[%d]: %s\n", index, token)
 		}
 
