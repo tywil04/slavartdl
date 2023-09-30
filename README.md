@@ -47,15 +47,6 @@ slavartdl config remove discordTokens tokenIndex(s)       # tokenIndex is from t
 slavartdl config remove discordCredentials tokenIndex(s)  # tokenIndex is from the list command
 ```
 
-
-### Go installed?
-If you have Go installed then you can run:
-```
-go install github.com/tywil04/slavartdl@latest
-```
-which will install `slavartdl` in your go bin path.
-
-
 ## Config
 Session tokens are stored in a local config file (use the `config` command to find the location). You do not need to manually edit the config, you can use the commands show below. The session tokens are stored in plaintext due to the simplicity of this program, this means anyone who has access to your file system can use your revolt account(s). Dont use your main account for this, I am not liable for your account getting hacked or stolen.
 
