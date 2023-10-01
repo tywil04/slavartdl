@@ -27,7 +27,7 @@ jobs:
         project_path: "./cli"
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
-        ldflags: "-X github.com/tywil04/slavartdl/cli/internal/update.Version=${RELEASE_TAG}"
+        ldflags: "-X github.com/tywil04/slavartdl/cli/internal/update.Version=${{ github.ref }}"
         binary_name: "slavartdl"
         retry: 5
         extra_files: "LICENCE"
