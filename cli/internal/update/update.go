@@ -18,7 +18,9 @@ import (
 	"github.com/minio/selfupdate"
 )
 
-const Version = "v1.1.16"
+// gets set with build command
+// -ldflags "-X github.com/tywil04/slavartdl/cli/internal/update.Version=VERSION"
+var Version string
 
 const assetNameTemplate = "slavartdl-%s-%s-%s.%s"
 const signatureNameTemplate = "slavartdl-%s-%s-%s.%s.md5"
