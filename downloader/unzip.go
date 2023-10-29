@@ -10,14 +10,15 @@ import (
 	"strings"
 )
 
-type UnzipOptions struct {
-	IgnoreSubdirs bool
-	IgnoreCover   bool
-}
+const (
+	pathSeparator = string(os.PathSeparator)
+
+	coverFileName = "cover.jpg"
+)
 
 func unzip(file *zip.File, outputFolderPath string, ignoreSubdirs, ignoreCover bool) error {
 	filePath := filepath.Join(outputFolderPath, file.Name)
-	if !strings.HasPrefix(filePath, filepath.Clean(outputFolderPath)+string(os.PathSeparator)) {
+	if !strings.HasPrefix(filePath, filepath.Clean(outputFolderPath)+pathSeparator) {
 		return errors.New("invalid file path")
 	}
 
@@ -44,7 +45,7 @@ func unzip(file *zip.File, outputFolderPath string, ignoreSubdirs, ignoreCover b
 		filePath = filepath.Join(outputFolderPath, fileNameOnly)
 	}
 
-	if !(fileNameOnly == "cover.jpg" && ignoreCover) {
+	if !(fileNameOnly == coverFileName && ignoreCover) {
 		destinationFile, err := os.Create(filePath)
 		if err != nil {
 			return err
