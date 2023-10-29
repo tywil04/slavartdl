@@ -58,10 +58,10 @@ func GetPaste(instance, id, key string) (string, error) {
 		plainText = zlibDecompress(plainText)
 	}
 
-	paste := struct {
-		Paste string `json:"paste"`
-	}{}
-	json.Unmarshal(plainText, &paste)
+	paste := Paste{}
+	if err := json.Unmarshal(plainText, &paste); err != nil {
+		return "", err
+	}
 
 	return paste.Paste, nil
 }

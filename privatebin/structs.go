@@ -5,3 +5,7 @@ type Response struct {
 	Adata []any  `json:"adata"`
 	Ct    string `json:"ct"`
 }
+
+type Paste struct {
+	Paste string `json:"paste"`
+}
