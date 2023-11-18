@@ -22,21 +22,7 @@ const (
 )
 
 var (
-	PixeldrainAllowedHosts = []string{
-		"tidal.com",
-		"www.qobuz.com",
-		"play.qobuz.com",
-		"open.qobuz.com",
-		"soundcloud.com",
-		"www.deezer.com",
-		"open.spotify.com",
-		"music.youtube.com",
-		"www.jiosaavn.com",
-	}
-
 	pixeldrainRegex = regexp.MustCompile(`(?ms).*https:\/\/pixeldrain\.com\/u\/(.{8}).*`)
-
-	//slavartRequestedUrlAndDownloadLinkRegex = regexp.MustCompile(`(?m)Your requested link\, (.*)\, is now available for download:\n \*\*Download Link\*\*\n (.*)`)
 )
 
 func (s *Session) PixeldrainTryInviteUser() error {
