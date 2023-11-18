@@ -21,18 +21,6 @@ const (
 )
 
 var (
-	SlavartAllowedHosts = []string{
-		"tidal.com",
-		"www.qobuz.com",
-		"play.qobuz.com",
-		"open.qobuz.com",
-		"soundcloud.com",
-		"www.deezer.com",
-		"open.spotify.com",
-		"music.youtube.com",
-		"www.jiosaavn.com",
-	}
-
 	slavartRequestedUrlAndDownloadLinkRegex = regexp.MustCompile(`(?m)Your requested link\, (.*)\, is now available for download:\n \*\*Download Link\*\*\n (.*)`)
 )
 
