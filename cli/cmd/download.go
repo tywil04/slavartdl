@@ -25,26 +25,6 @@ var downloadCmd = &cobra.Command{
 	Long:         "Download music from url using SlavArt Divolt server (Supports: Tidal, Qobuz, SoundCloud, Deezer, Spotify, YouTube and Jiosaavn)",
 	Args:         cobra.ArbitraryArgs,
 	SilenceUsage: true,
-	PreRun: func(cmd *cobra.Command, args []string) {
-		for _, arg := range args {
-			parsedUrl, err := url.ParseRequestURI(arg)
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-
-			allowed := false
-			for _, host := range divolt.SlavartAllowedHosts {
-				if host == parsedUrl.Host {
-					allowed = true
-					break
-				}
-			}
-
-			if !allowed {
-				log.Fatal("host not allowed")
-			}
-		}
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		flags := cmd.Flags()
 
