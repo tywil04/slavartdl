@@ -5,47 +5,48 @@ This repo contains a command line tool, and a desktop application (WIP) which al
 
 This tool was originally inspired by [slavart-scraper](https://github.com/D0otDo0t/slavolt-scraper), however I choose to write my own tool because I noticed there were inefficiencies in how the download link was collected.
 
-You can find pre-build versions in the releases section.
+You can find pre-built versions in the releases section.
 
 I created this tool for educational purposes and I do not condone any form of piracy.
 
 
 ## Usage
-Just run the executable for your system. There are prebuild executables for Windows, Linux and MacOS (darwin). Linux and MacOS have arm compatible versions.
+Just run the executable for your system. There are pre-built executables for Windows (x86), Linux (Arm64 and x86) and MacOS (Arm64 and x86).
 
-On Windows don't double click the executable, it will open a command prompt and close instead open a command prompt and navigate to the directory containing the `slavartdl.exe`. You then need to run this executable in the command prompt to successfully run the command.
+On all systems, download the correct executable from the releases section.
+
+On Windows don't double click the executable, it will open a command prompt and close. Instead open a command prompt and navigate to the directory containing the `slavartdl.exe`. You then need to run this executable in the command prompt to with the correct arguments and flags.
+
+On Linux and MacOS open a terminal, navigate to the directory containing the slavartdl executable. Then set the executable flag using `chmod +x slavartdl`. Now you just need to run the executable with the correct arguments and flags.
 
 
 ### Commands
 To find out how to run the commands use `--help` on any command (or subcommand). 
 
-Heres what the arguments mean:
-- `value(s)`: 1 or more values allowed
-- `value`: 1 value allowed
-- `values`: only more than 1 values allowed
-- `[flags]`: 1 or more optional flags
-
 Heres a brief structure of the commands:
+```shell
+slavartdl download [urls...] # downloads music from supported urls.
+
+slavartdl version # lists the current version of the slavartdl executable.
+
+slavartdl update  # updates slavartdl to the latest version.
+
+slavartdl config add divoltTokens [tokens...]             # adds one to infinite divolt session tokens to config.
+slavartdl config add divoltCredential [email] [password]  # adds one divolt credential to config. a credential is an email and password.
+slavartdl config add discordTokens [tokens...]            # adds one to infinite discord session tokens to config.
+slavartdl config add discordCredential [email] [password] # adds one discord credential to config. a credential is an email and password.
+
+slavartdl config list divoltTokens       # lists all divolt session tokens with their id.
+slavartdl config list divoltCredentials  # lists all divolt credentials with their id. a credential is an email and password.
+slavartdl config list discordTokens      # lists all discord session tokens with their id.
+slavartdl config list discordCredentials # lists all discord credentials with their id. a credential is an email and password.
+
+slavartdl config remove divoltTokens [token ids...]             # removes one to infinite divolt session tokens from config using their id.
+slavartdl config remove divoltCredentials [credential ids...]   # removes one to infinite divolt credentials from config using their id.
+slavartdl config remove discordTokens [token ids...]            # removes one to infinite discord session tokens from config using their id.
+slavartdl config remove discordCredentials [credential ids...]  # removes one to infinite discord credentials from config using their id.
 ```
-slavartdl download url(s)
-slavartdl version
-slavartdl update                                         # updates slavartdl
-slavartdl config add
-slavartdl config add divoltTokens token(s)
-slavartdl config add divoltCredential email password
-slavartdl config add discordTokens token(s)
-slavartdl config add discordCredential email password
-slavartdl config list
-slavartdl config list divoltTokens
-slavartdl config list divoltCredentials
-slavartdl config list discordTokens
-slavartdl config list discordCredentials
-slavartdl config remove
-slavartdl config remove divoltTokens tokenIndex(s)        # tokenIndex is from the list command
-slavartdl config remove divoltCredentials tokenIndex(s)   # tokenIndex is from the list command
-slavartdl config remove discordTokens tokenIndex(s)       # tokenIndex is from the list command
-slavartdl config remove discordCredentials tokenIndex(s)  # tokenIndex is from the list command
-```
+
 
 ## Config
 Session tokens are stored in a local config file (use the `config` command to find the location). You do not need to manually edit the config, you can use the commands show below. The session tokens are stored in plaintext due to the simplicity of this program, this means anyone who has access to your file system can use your revolt account(s). Dont use your main account for this, I am not liable for your account getting hacked or stolen.
@@ -54,7 +55,9 @@ You can have multiple session tokens that will randomly get used per request.
 
 
 ### Structure
-As a note, the structure of `"downloadcmd.timeout"` has changed, its now an int vs a map containing seconds and minutes. This is because the timeout flag has also changed to only be seconds. The additional minutes flag/config value was redundant so it was removed. Please note, `"downloadcmd.outputdir"` must be an absolute file path, not relative.
+As a note, the structure of `"downloadcmd.timeout"` has changed, its now an int vs a map containing seconds and minutes. This is because the timeout flag has also changed to only be seconds. The additional minutes flag/config value was redundant so it was removed. 
+
+`"downloadcmd.outputdir"` must be an absolute file path, not relative.
 
 ```
 {
@@ -131,6 +134,7 @@ go build -o slavartdl cli/main.go
 ### Similar Tools
 - [`Limestone`](https://github.com/dxbednarczyk/limestone)
 - [`slavart-scraper`](https://github.com/D0otDo0t/slavolt-scraper)
+
 
 #### Comparison
 |  | `limestone` | `slavartdl` | `slavolt-scraper` |
