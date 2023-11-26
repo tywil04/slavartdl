@@ -55,10 +55,6 @@ You can have multiple session tokens that will randomly get used per request.
 
 
 ### Structure
-As a note, the structure of `"downloadcmd.timeout"` has changed, its now an int vs a map containing seconds and minutes. This is because the timeout flag has also changed to only be seconds. The additional minutes flag/config value was redundant so it was removed. 
-
-`"downloadcmd.outputdir"` must be an absolute file path, not relative.
-
 ```
 {
   "discordlogincredentials": [
@@ -97,8 +93,10 @@ As a note, the structure of `"downloadcmd.timeout"` has changed, its now an int 
   }
 }
 ```
-You will require either at least one session token in `divoltsessiontokens` or at least one dictionary with an email and password in `divoltlogincredentials`. Both of these allow this tool to access your Divolt account which is required for this bot to function. Please don't use your main account!
-
+Notes on config:
+- You will require either at least one session token in `divoltsessiontokens` or at least one dictionary with an email and password in `divoltlogincredentials`. Both of these allow this tool to access your Divolt account which is required for this bot to function. Please don't use your main account!
+- The structure of `downloadcmd.timeout` has changed, its now just integer instead of a dictionary containing seconds and minutes as integers. This is because the timeout flag has also changed to only be seconds. The additional minutes flag/config was redundant so it was removed. Only old versions of slavartdl will have this incorrect config, it will have to be changed manually.
+- `downloadcmd.outputdir` must be an absolute file path, not relative.
 
 #### Getting Divolt session tokens to add to config
 If you want to get your session token, its easy. Just note that once you get your session token, for it to remain active you must close the divolt tab and do not logout.
